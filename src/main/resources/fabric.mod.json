@@ -12,7 +12,7 @@
 		"sources": "https://github.com/FabricMC/fabric-example-mod"
 	},
 	"license": "CC0-1.0",
-	"icon": "assets/old_wu_java/icon.png",
+	"icon": "assets/old_wu_java/icon.jpg",
 	"environment": "*",
 	"entrypoints": {
 		"main": [

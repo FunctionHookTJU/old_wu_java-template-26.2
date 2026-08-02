@@ -3,7 +3,10 @@
 	"package": "functionhook.oldwu.client.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"client": [
-		"ExampleClientMixin"
+		"ExampleClientMixin",
+		"CatRendererMixin",
+		"CatRenderStateMixin",
+		"LivingEntityRendererMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

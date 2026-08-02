@@ -1,10 +1,35 @@
 package functionhook.oldwu.client;
 
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
+
+import functionhook.oldwu.client.model.AngryCatBabyModel;
+import functionhook.oldwu.client.model.AngryCatModel;
+import functionhook.oldwu.client.model.BattleCatBabyModel;
+import functionhook.oldwu.client.model.BattleCatModel;
+import functionhook.oldwu.client.model.FlatCatBabyModel;
+import functionhook.oldwu.client.model.FlatCatModel;
+import functionhook.oldwu.client.model.RecoveryCatBabyModel;
+import functionhook.oldwu.client.model.RecoveryCatModel;
+import functionhook.oldwu.client.particle.MaomaoParticle;
+import functionhook.oldwu.client.particle.RecoveryParticle;
+import functionhook.oldwu.particle.ModParticles;
 
 public class Old_Wu_javaClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
+		ModelLayerRegistry.registerModelLayer(AngryCatModel.LAYER_LOCATION, AngryCatModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(AngryCatBabyModel.LAYER_LOCATION, AngryCatBabyModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(BattleCatModel.LAYER_LOCATION, BattleCatModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(BattleCatBabyModel.LAYER_LOCATION, BattleCatBabyModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(RecoveryCatModel.LAYER_LOCATION, RecoveryCatModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(RecoveryCatBabyModel.LAYER_LOCATION, RecoveryCatBabyModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(FlatCatModel.LAYER_LOCATION, FlatCatModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(FlatCatBabyModel.LAYER_LOCATION, FlatCatBabyModel::createBodyLayer);
+
+		ParticleProviderRegistry.getInstance().register(ModParticles.RECOVERY, RecoveryParticle.Provider::new);
+		ParticleProviderRegistry.getInstance().register(ModParticles.MAOMAO, MaomaoParticle.Provider::new);
 	}
 }

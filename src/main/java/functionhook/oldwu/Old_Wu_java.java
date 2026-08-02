@@ -1,11 +1,21 @@
 package functionhook.oldwu;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 
 import net.minecraft.resources.Identifier;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
+import net.minecraft.world.InteractionResult;
+import net.minecraft.world.entity.animal.feline.Cat;
+import net.minecraft.world.item.ShovelItem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import functionhook.oldwu.cat.CatMatingLogic;
+import functionhook.oldwu.particle.ModParticles;
+import functionhook.oldwu.sound.ModSounds;
 
 public class Old_Wu_java implements ModInitializer {
 	public static final String MOD_ID = "old_wu_java";
@@ -21,7 +31,26 @@ public class Old_Wu_java implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 
+		ModParticles.init();
+		ModSounds.initialize();
+		registerShovelInteract();
 		LOGGER.info("Hello Fabric world!");
+	}
+
+	// 用铲子右键猫会立即将其压扁（flat）。
+	// 客户端返回 SUCCESS 触发正常的使用动作（挥臂），服务端进入 flat 并播放铁砧音效。
+	private static void registerShovelInteract() {
+		UseEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> {
+			if (!(entity instanceof Cat cat) || !(player.getItemInHand(hand).getItem() instanceof ShovelItem)) {
+				return InteractionResult.PASS;
+			}
+
+			if (!level.isClientSide()) {
+				CatMatingLogic.enterFlat(cat);
+				level.playSound(null, cat, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
+			}
+			return InteractionResult.SUCCESS;
+		});
 	}
 
 	public static Identifier id(String path) {
