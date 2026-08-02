@@ -1,0 +1,38 @@
+{
+	"schemaVersion": 1,
+	"id": "old_wu_java",
+	"version": "${version}",
+	"name": "Old_Wu_java",
+	"description": "This is an example description! Tell everyone what your mod is about!",
+	"authors": [
+		"Me!"
+	],
+	"contact": {
+		"homepage": "https://fabricmc.net/",
+		"sources": "https://github.com/FabricMC/fabric-example-mod"
+	},
+	"license": "CC0-1.0",
+	"icon": "assets/old_wu_java/icon.png",
+	"environment": "*",
+	"entrypoints": {
+		"main": [
+			"functionhook.oldwu.Old_Wu_java"
+		],
+		"client": [
+			"functionhook.oldwu.client.Old_Wu_javaClient"
+		]
+	},
+	"mixins": [
+		"old_wu_java.mixins.json",
+		{
+			"config": "old_wu_java.client.mixins.json",
+			"environment": "client"
+		}
+	],
+	"depends": {
+		"fabricloader": ">=0.19.3",
+		"minecraft": "~26.2",
+		"java": ">=25",
+		"fabric-api": "*"
+	}
+}

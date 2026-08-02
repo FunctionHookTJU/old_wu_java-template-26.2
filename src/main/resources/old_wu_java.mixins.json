@@ -1,0 +1,14 @@
+{
+	"required": true,
+	"package": "functionhook.oldwu.mixin",
+	"compatibilityLevel": "JAVA_25",
+	"mixins": [
+		"CatMixin"
+	],
+	"injectors": {
+		"defaultRequire": 1
+	},
+	"overwrites": {
+		"requireAnnotations": true
+	}
+}
