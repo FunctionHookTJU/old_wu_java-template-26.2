@@ -40,3 +40,4 @@ replay_*.log
 *.jfr
 
 *.txt1
+tmp_cat_models/
