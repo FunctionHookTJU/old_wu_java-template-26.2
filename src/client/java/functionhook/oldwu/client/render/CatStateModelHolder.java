@@ -6,10 +6,13 @@ import functionhook.oldwu.client.model.BattleCatBabyModel;
 import functionhook.oldwu.client.model.BattleCatModel;
 import functionhook.oldwu.client.model.FlatCatBabyModel;
 import functionhook.oldwu.client.model.FlatCatModel;
+import functionhook.oldwu.client.model.MaodieCatModel;
 import functionhook.oldwu.client.model.RecoveryCatBabyModel;
 import functionhook.oldwu.client.model.RecoveryCatModel;
 
 public interface CatStateModelHolder {
+	MaodieCatModel oldwu_getMaodieModel();
+
 	AngryCatModel oldwu_getAngryModel();
 
 	AngryCatBabyModel oldwu_getAngryBabyModel();

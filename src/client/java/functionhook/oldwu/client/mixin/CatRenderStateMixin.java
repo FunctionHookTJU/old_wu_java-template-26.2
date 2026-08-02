@@ -11,6 +11,8 @@ import functionhook.oldwu.client.render.CatStateCarrier;
 public abstract class CatRenderStateMixin implements CatStateCarrier {
 	@Unique
 	private int oldwuStateId;
+	@Unique
+	private boolean oldwuMaodie;
 
 	@Override
 	public int oldwu_getStateId() {
@@ -20,5 +22,15 @@ public abstract class CatRenderStateMixin implements CatStateCarrier {
 	@Override
 	public void oldwu_setStateId(int stateId) {
 		this.oldwuStateId = stateId;
+	}
+
+	@Override
+	public boolean oldwu_isMaodie() {
+		return this.oldwuMaodie;
+	}
+
+	@Override
+	public void oldwu_setMaodie(boolean maodie) {
+		this.oldwuMaodie = maodie;
 	}
 }

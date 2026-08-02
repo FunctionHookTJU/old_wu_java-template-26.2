@@ -53,30 +53,31 @@ public abstract class CatMixin {
 		input.read("oldwu_partner", UUIDUtil.CODEC).ifPresent(uuid -> CatPartners.setPartner(self, uuid));
 	}
 
-	private boolean oldwu_isFlat() {
-		return CatPartners.getState((Cat) (Object) this) == CatState.FLAT;
+	private boolean oldwu_isSilent() {
+		Cat self = (Cat) (Object) this;
+		return CatPartners.getState(self) == CatState.FLAT || CatMatingLogic.isMaodie(self);
 	}
 
-	// 压扁状态下不播放原版环境音
+	// 压扁或被命名为 maodie 时，不播放原版环境音
 	@Inject(method = "getAmbientSound", at = @At("HEAD"), cancellable = true)
 	private void oldwu_flatAmbient(CallbackInfoReturnable<SoundEvent> cir) {
-		if (this.oldwu_isFlat()) {
+		if (this.oldwu_isSilent()) {
 			cir.setReturnValue(null);
 		}
 	}
 
-	// 压扁状态下不播放原版受伤音
+	// 压扁或被命名为 maodie 时，不播放原版受伤音
 	@Inject(method = "getHurtSound", at = @At("HEAD"), cancellable = true)
 	private void oldwu_flatHurt(DamageSource source, CallbackInfoReturnable<SoundEvent> cir) {
-		if (this.oldwu_isFlat()) {
+		if (this.oldwu_isSilent()) {
 			cir.setReturnValue(null);
 		}
 	}
 
-	// 压扁状态下不播放原版死亡音
+	// 压扁或被命名为 maodie 时，不播放原版死亡音
 	@Inject(method = "getDeathSound", at = @At("HEAD"), cancellable = true)
 	private void oldwu_flatDeath(CallbackInfoReturnable<SoundEvent> cir) {
-		if (this.oldwu_isFlat()) {
+		if (this.oldwu_isSilent()) {
 			cir.setReturnValue(null);
 		}
 	}

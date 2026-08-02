@@ -37,7 +37,9 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
 		boolean isBaby = state.isBaby;
 		CatStateModelHolder holder = (CatStateModelHolder) (Object) this;
 		EntityModel<?> stateModel = null;
-		if (stateId == CatState.ANGRY.ordinal() || stateId == CatState.PAIRING.ordinal()) {
+		if (carrier.oldwu_isMaodie()) {
+			stateModel = holder.oldwu_getMaodieModel();
+		} else if (stateId == CatState.ANGRY.ordinal() || stateId == CatState.PAIRING.ordinal()) {
 			stateModel = isBaby ? holder.oldwu_getAngryBabyModel() : holder.oldwu_getAngryModel();
 		} else if (stateId == CatState.BATTLE.ordinal()) {
 			stateModel = isBaby ? holder.oldwu_getBattleBabyModel() : holder.oldwu_getBattleModel();

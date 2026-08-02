@@ -10,6 +10,7 @@ import functionhook.oldwu.client.model.BattleCatBabyModel;
 import functionhook.oldwu.client.model.BattleCatModel;
 import functionhook.oldwu.client.model.FlatCatBabyModel;
 import functionhook.oldwu.client.model.FlatCatModel;
+import functionhook.oldwu.client.model.MaodieCatModel;
 import functionhook.oldwu.client.model.RecoveryCatBabyModel;
 import functionhook.oldwu.client.model.RecoveryCatModel;
 import functionhook.oldwu.client.particle.MaomaoParticle;
@@ -20,6 +21,7 @@ public class Old_Wu_javaClient implements ClientModInitializer {
 	@Override
 	public void onInitializeClient() {
 		// This entrypoint is suitable for setting up client-specific logic, such as rendering.
+		ModelLayerRegistry.registerModelLayer(MaodieCatModel.LAYER_LOCATION, MaodieCatModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(AngryCatModel.LAYER_LOCATION, AngryCatModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(AngryCatBabyModel.LAYER_LOCATION, AngryCatBabyModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(BattleCatModel.LAYER_LOCATION, BattleCatModel::createBodyLayer);

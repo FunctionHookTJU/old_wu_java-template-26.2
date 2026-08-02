@@ -3,6 +3,7 @@ package functionhook.oldwu.client.mixin;
 import net.minecraft.client.renderer.entity.CatRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.CatRenderState;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.animal.feline.Cat;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -11,6 +12,8 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
+import functionhook.oldwu.Old_Wu_java;
+import functionhook.oldwu.cat.CatMatingLogic;
 import functionhook.oldwu.cat.CatPartners;
 import functionhook.oldwu.client.model.AngryCatBabyModel;
 import functionhook.oldwu.client.model.AngryCatModel;
@@ -18,6 +21,7 @@ import functionhook.oldwu.client.model.BattleCatBabyModel;
 import functionhook.oldwu.client.model.BattleCatModel;
 import functionhook.oldwu.client.model.FlatCatBabyModel;
 import functionhook.oldwu.client.model.FlatCatModel;
+import functionhook.oldwu.client.model.MaodieCatModel;
 import functionhook.oldwu.client.model.RecoveryCatBabyModel;
 import functionhook.oldwu.client.model.RecoveryCatModel;
 import functionhook.oldwu.client.render.CatStateCarrier;
@@ -25,6 +29,10 @@ import functionhook.oldwu.client.render.CatStateModelHolder;
 
 @Mixin(CatRenderer.class)
 public abstract class CatRendererMixin implements CatStateModelHolder {
+	private static final Identifier MAODIE_TEXTURE = Old_Wu_java.id("textures/entity/maodie.png");
+
+	@Unique
+	private MaodieCatModel oldwuMaodieModel;
 	@Unique
 	private AngryCatModel oldwuAngryModel;
 	@Unique
@@ -44,6 +52,7 @@ public abstract class CatRendererMixin implements CatStateModelHolder {
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void oldwu_bakeModels(EntityRendererProvider.Context context, CallbackInfo ci) {
+		this.oldwuMaodieModel = new MaodieCatModel(context.bakeLayer(MaodieCatModel.LAYER_LOCATION));
 		this.oldwuAngryModel = new AngryCatModel(context.bakeLayer(AngryCatModel.LAYER_LOCATION));
 		this.oldwuAngryBabyModel = new AngryCatBabyModel(context.bakeLayer(AngryCatBabyModel.LAYER_LOCATION));
 		this.oldwuBattleModel = new BattleCatModel(context.bakeLayer(BattleCatModel.LAYER_LOCATION));
@@ -56,7 +65,17 @@ public abstract class CatRendererMixin implements CatStateModelHolder {
 
 	@Inject(method = "extractRenderState", at = @At("TAIL"))
 	private void oldwu_extractState(Cat entity, CatRenderState state, float partialTicks, CallbackInfo ci) {
+		boolean maodie = CatMatingLogic.isMaodie(entity);
+		((CatStateCarrier) (Object) state).oldwu_setMaodie(maodie);
 		((CatStateCarrier) (Object) state).oldwu_setStateId(CatPartners.getState(entity).ordinal());
+		if (maodie) {
+			state.texture = MAODIE_TEXTURE;
+		}
+	}
+
+	@Override
+	public MaodieCatModel oldwu_getMaodieModel() {
+		return this.oldwuMaodieModel;
 	}
 
 	@Override

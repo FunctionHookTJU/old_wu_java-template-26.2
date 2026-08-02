@@ -34,12 +34,33 @@ public final class CatMatingLogic {
 	private static final float RECOVERY_HEALTH = 1.0F;
 	private static final float RECOVERY_EXIT_RATIO = 0.8F;
 	private static final int REGENERATION_DURATION = 200;
+	public static final String MAODIE_NAME = "maodie";
 
 	private CatMatingLogic() {
 	}
 
+	/**
+	 * 是否被命名牌命名为 "maodie"：此类猫使用专用模型/贴图，
+	 * 移除全部 AI 与行为逻辑，且不发出任何声音。
+	 */
+	public static boolean isMaodie(Cat cat) {
+		return cat.hasCustomName() && MAODIE_NAME.equals(cat.getCustomName().getString());
+	}
+
 	public static void tick(ServerLevel level, Cat cat) {
 		if (cat.isOrderedToSit()) {
+			return;
+		}
+
+		boolean maodie = isMaodie(cat);
+		if (cat.isNoAi() != maodie) {
+			cat.setNoAi(maodie);
+		}
+		if (maodie) {
+			// 移除所有行为逻辑：清除配对与状态，停止寻路，保持完全静止
+			CatPartners.setPartner(cat, null);
+			CatPartners.setState(cat, CatState.COMMON);
+			cat.getNavigation().stop();
 			return;
 		}
 
