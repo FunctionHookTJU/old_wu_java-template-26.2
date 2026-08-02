@@ -1,15 +1,6 @@
-# Old_Wu_java
+# Old_Wu_java  老吴Mod Java版
 
-一个基于 Fabric 的 Minecraft Mod，为原版猫实现了完整的行为状态机，所有状态模型均按成年/幼年区分。
-
-## 猫的数据属性
-
-| 属性 | 默认值 | 说明 |
-| --- | --- | --- |
-| 最大生命值 | 20 | 猫的生命上限 |
-| 当前生命值 | — | 实时生命 |
-| 配对目标 UUID | 空 | String 类型，为空表示未配对 |
-
+由FunctionHookTJU(宇佐见函钩)制作并开源
 ## 状态机
 
 状态按优先级处理，高优先级状态会无条件打断低优先级状态。
@@ -39,10 +30,6 @@
 - UUID 必须用 String 序列化存储，配对时互相锁定。
 - 所有模型（common、angry、battle、recovery、flat）必须准备成年/幼年各一套。
 - 音频按状态触发，不可重叠。
-
-## Setup
-
-For setup instructions, please see the [Fabric Documentation page](https://docs.fabricmc.net/develop/getting-started/creating-a-project#setting-up) related to the IDE that you are using.
 
 ## License
 
