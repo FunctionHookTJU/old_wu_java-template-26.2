@@ -34,6 +34,8 @@ public abstract class CatMixin {
 		entityData.define(CatPartners.ATTACK_COOLDOWN, 0);
 		entityData.define(CatPartners.FLAT_TIMER, 0);
 		entityData.define(CatPartners.PAIRING_TIMER, 0);
+		entityData.define(CatPartners.DANCE_MODEL_INDEX, 0);
+		entityData.define(CatPartners.DANCE_TIMER, 0);
 	}
 
 	@Inject(method = "customServerAiStep", at = @At("TAIL"))
@@ -53,9 +55,10 @@ public abstract class CatMixin {
 		input.read("oldwu_partner", UUIDUtil.CODEC).ifPresent(uuid -> CatPartners.setPartner(self, uuid));
 	}
 
+	// 模组状态（愤怒/配对/战斗/回血/压扁）或被命名为 maodie 时，屏蔽原版猫音效
 	private boolean oldwu_isSilent() {
 		Cat self = (Cat) (Object) this;
-		return CatPartners.getState(self) == CatState.FLAT || CatMatingLogic.isMaodie(self);
+		return CatPartners.getState(self) != CatState.COMMON || CatMatingLogic.isMaodie(self);
 	}
 
 	// 压扁或被命名为 maodie 时，不播放原版环境音

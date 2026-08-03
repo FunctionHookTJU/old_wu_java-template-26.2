@@ -91,8 +91,8 @@ public class BattleCatBabyModel extends EntityModel<CatRenderState> {
 		super.setupAnim(state);
 
 		float age = state.ageInTicks;
-		this.head.yRot += Mth.sin(age * 0.5F) * 0.08F;
-		this.head.xRot += Mth.sin(age * 0.35F) * 0.04F;
-		this.tail1.zRot += Mth.sin(age * 0.8F) * 0.12F;
+		this.head.yRot += Mth.sin(age * 0.5F) * 0.16F;
+		this.head.xRot += Mth.sin(age * 0.35F) * 0.08F;
+		this.tail1.zRot += Mth.sin(age * 0.8F) * 0.24F;
 	}
 }

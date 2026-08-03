@@ -10,7 +10,10 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.animal.feline.Cat;
+import net.minecraft.world.entity.animal.pig.Pig;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
@@ -22,6 +25,7 @@ public final class CatMatingLogic {
 	private static final double ATTRACT_RANGE = 16.0;
 	private static final double STOP_DISTANCE_SQR = 2.25;
 	private static final float BATTLE_TRIGGER_CHANCE = 0.05F;
+	private static final float BATTLE_JUMP_CHANCE = 0.02F;
 	private static final int ATTACK_MIN_DELAY = 10;
 	private static final int ATTACK_MAX_DELAY = 20;
 	private static final float ATTACK_DAMAGE = 0.5F;
@@ -31,6 +35,10 @@ public final class CatMatingLogic {
 	private static final double MINECART_RANGE = 16.0;
 	private static final double MINECART_CONTACT_DISTANCE_SQR = 1.0;
 	private static final int FLAT_DURATION_TICKS = 300;
+	private static final double DANCE_RANGE = 16.0;
+	private static final int DANCE_DURATION_TICKS = 100;
+	private static final int DANCE_MODEL_SWITCH_INTERVAL = 5;
+	private static final int DANCE_MODEL_COUNT = 5;
 	private static final float RECOVERY_HEALTH = 1.0F;
 	private static final float RECOVERY_EXIT_RATIO = 0.8F;
 	private static final int REGENERATION_DURATION = 200;
@@ -52,12 +60,8 @@ public final class CatMatingLogic {
 			return;
 		}
 
-		boolean maodie = isMaodie(cat);
-		if (cat.isNoAi() != maodie) {
-			cat.setNoAi(maodie);
-		}
-		if (maodie) {
-			// 移除所有行为逻辑：清除配对与状态，停止寻路，保持完全静止
+		if (isMaodie(cat)) {
+			// AI/行为逻辑已由 MobMixin.isEffectiveAi 拦截；此处仅兜底清理
 			CatPartners.setPartner(cat, null);
 			CatPartners.setState(cat, CatState.COMMON);
 			cat.getNavigation().stop();
@@ -69,7 +73,23 @@ public final class CatMatingLogic {
 			return;
 		}
 
+		if (CatPartners.getState(cat) == CatState.DANCE) {
+			danceTick(cat);
+			return;
+		}
+
 		if (trackMinecart(cat)) {
+			return;
+		}
+
+		// 任意情况（无需战斗）生命 ≤1 即触发回血
+		if (CatPartners.getState(cat) == CatState.RECOVERY) {
+			recoveryTick(level, cat);
+			return;
+		}
+
+		if (cat.getHealth() <= RECOVERY_HEALTH) {
+			startRecovery(cat);
 			return;
 		}
 
@@ -84,11 +104,70 @@ public final class CatMatingLogic {
 
 			switch (CatPartners.getState(cat)) {
 				case BATTLE -> battleTick(level, cat, partner);
-				case RECOVERY -> recoveryTick(level, cat, partner);
 				default -> pairingTick(cat, partner);
 			}
 		} else {
+			if (tryDanceOrFlat(cat)) {
+				return;
+			}
 			tryAngryNearby(cat);
+		}
+	}
+
+	/**
+	 * 玩家骑马或骑猪经过时，猫 50% 概率进入 dance、50% 概率进入 flat。
+	 */
+	private static boolean tryDanceOrFlat(Cat cat) {
+		Player rider = findRidingPlayer(cat);
+		if (rider == null) {
+			return false;
+		}
+
+		if (cat.getRandom().nextBoolean()) {
+			enterDance(cat);
+		} else {
+			enterFlat(cat);
+		}
+		return true;
+	}
+
+	private static Player findRidingPlayer(Cat cat) {
+		return cat.level()
+			.getEntitiesOfClass(
+				Player.class,
+				new AABB(cat.blockPosition()).inflate(DANCE_RANGE),
+				player -> player.isPassenger() && (player.getVehicle() instanceof AbstractHorse || player.getVehicle() instanceof Pig)
+			)
+			.stream()
+			.findFirst()
+			.orElse(null);
+	}
+
+	/**
+	 * 进入 dance 状态：不停跳跃，模型在全部状态模型间每 5 tick 随机切换，
+	 * 不播放任何音效；持续 {@link #DANCE_DURATION_TICKS} 后恢复 common。
+	 */
+	public static void enterDance(Cat cat) {
+		CatPartners.setPartner(cat, null);
+		CatPartners.setDanceTimer(cat, DANCE_DURATION_TICKS);
+		CatPartners.setDanceModelIndex(cat, 0);
+		transitionTo(cat, CatState.DANCE);
+	}
+
+	private static void danceTick(Cat cat) {
+		if (cat.onGround()) {
+			cat.jumpFromGround();
+		}
+
+		if (cat.tickCount % DANCE_MODEL_SWITCH_INTERVAL == 0) {
+			CatPartners.setDanceModelIndex(cat, cat.getRandom().nextInt(DANCE_MODEL_COUNT));
+		}
+
+		int timer = CatPartners.getDanceTimer(cat);
+		if (timer > 0) {
+			CatPartners.setDanceTimer(cat, timer - 1);
+		} else {
+			transitionTo(cat, CatState.COMMON);
 		}
 	}
 
@@ -161,8 +240,9 @@ public final class CatMatingLogic {
 				transitionTo(other, CatState.PAIRING);
 			}
 		}, () -> {
-			transitionTo(cat, CatState.COMMON);
-			cat.getNavigation().stop();
+			if (transitionTo(cat, CatState.COMMON)) {
+				cat.getNavigation().stop();
+			}
 		});
 	}
 
@@ -200,6 +280,12 @@ public final class CatMatingLogic {
 
 	private static void battleTick(ServerLevel level, Cat cat, LivingEntity partner) {
 		double distanceSqr = cat.distanceToSqr(partner);
+
+		// 每 tick 2% 概率跳起
+		if (cat.getRandom().nextFloat() < BATTLE_JUMP_CHANCE) {
+			cat.jumpFromGround();
+		}
+
 		if (distanceSqr > STOP_DISTANCE_SQR) {
 			cat.getNavigation().moveTo(partner, 1.0);
 		} else {
@@ -224,10 +310,6 @@ public final class CatMatingLogic {
 			CatAudio.playStateSound(cat, CatState.BATTLE);
 			CatPartners.setAttackCooldown(cat, nextAttackDelay(cat));
 		}
-
-		if (cat.getHealth() <= RECOVERY_HEALTH || partner.getHealth() <= RECOVERY_HEALTH) {
-			startRecovery(cat, partner);
-		}
 	}
 
 	/**
@@ -244,35 +326,23 @@ public final class CatMatingLogic {
 		cat.getLookControl().setLookAt(tail);
 	}
 
-	private static void startRecovery(Cat cat, LivingEntity partner) {
-		if (!(partner instanceof Cat other)) {
-			return;
-		}
-
+	/**
+	 * 任意情况下生命 ≤1 进入回血：清除配对、施加恢复效果。
+	 */
+	private static void startRecovery(Cat cat) {
+		CatPartners.setPartner(cat, null);
 		transitionTo(cat, CatState.RECOVERY);
-		transitionTo(other, CatState.RECOVERY);
 		applyRecoveryEffects(cat);
-		applyRecoveryEffects(other);
 	}
 
-	private static void recoveryTick(ServerLevel level, Cat cat, LivingEntity partner) {
-		if (!(partner instanceof Cat other)) {
-			CatPartners.setPartner(cat, null);
-			transitionTo(cat, CatState.COMMON);
-			return;
-		}
-
+	private static void recoveryTick(ServerLevel level, Cat cat) {
 		transitionTo(cat, CatState.RECOVERY);
 		applyRecoveryEffects(cat);
 		spawnRecoveryParticles(level, cat);
-		spawnRecoveryParticles(level, other);
 
 		float maxHealth = cat.getMaxHealth();
-		if (cat.getHealth() > maxHealth * RECOVERY_EXIT_RATIO && other.getHealth() > other.getMaxHealth() * RECOVERY_EXIT_RATIO) {
-			CatPartners.setPartner(cat, null);
-			CatPartners.setPartner(other, null);
+		if (cat.getHealth() > maxHealth * RECOVERY_EXIT_RATIO) {
 			transitionTo(cat, CatState.COMMON);
-			transitionTo(other, CatState.COMMON);
 		}
 	}
 
@@ -334,10 +404,15 @@ public final class CatMatingLogic {
 		return Optional.of(candidates.get(cat.getRandom().nextInt(candidates.size())));
 	}
 
-	private static void transitionTo(Cat cat, CatState newState) {
+	/**
+	 * 状态切换；仅在状态确实变化时触发音频并返回 true。
+	 */
+	private static boolean transitionTo(Cat cat, CatState newState) {
 		if (CatPartners.getState(cat) != newState) {
 			CatPartners.setState(cat, newState);
 			CatAudio.playStateSound(cat, newState);
+			return true;
 		}
+		return false;
 	}
 }

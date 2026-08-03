@@ -39,6 +39,14 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
 		EntityModel<?> stateModel = null;
 		if (carrier.oldwu_isMaodie()) {
 			stateModel = holder.oldwu_getMaodieModel();
+		} else if (stateId == CatState.DANCE.ordinal()) {
+			stateModel = switch (carrier.oldwu_getDanceModelIndex()) {
+				case 1 -> isBaby ? holder.oldwu_getAngryBabyModel() : holder.oldwu_getAngryModel();
+				case 2 -> isBaby ? holder.oldwu_getBattleBabyModel() : holder.oldwu_getBattleModel();
+				case 3 -> isBaby ? holder.oldwu_getRecoveryBabyModel() : holder.oldwu_getRecoveryModel();
+				case 4 -> isBaby ? holder.oldwu_getFlatBabyModel() : holder.oldwu_getFlatModel();
+				default -> null; // 0 = 普通（原版模型）
+			};
 		} else if (stateId == CatState.ANGRY.ordinal() || stateId == CatState.PAIRING.ordinal()) {
 			stateModel = isBaby ? holder.oldwu_getAngryBabyModel() : holder.oldwu_getAngryModel();
 		} else if (stateId == CatState.BATTLE.ordinal()) {

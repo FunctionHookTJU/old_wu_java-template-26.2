@@ -122,15 +122,15 @@ public class BattleCatModel extends EntityModel<CatRenderState> {
 
 		float age = state.ageInTicks;
 
-		this.head.yRot += Mth.sin(age * 0.5F) * 0.08F;
-		this.head.xRot += Mth.sin(age * 0.35F) * 0.04F;
+		this.head.yRot += Mth.sin(age * 0.5F) * 0.16F;
+		this.head.xRot += Mth.sin(age * 0.35F) * 0.08F;
 
-		this.tail1.zRot += Mth.sin(age * 0.8F) * 0.15F;
-		this.tail2.zRot += Mth.sin(age * 0.8F + 0.5F) * 0.15F;
+		this.tail1.zRot += Mth.sin(age * 0.8F) * 0.3F;
+		this.tail2.zRot += Mth.sin(age * 0.8F + 0.5F) * 0.3F;
 
-		this.frontLegL.xRot = Mth.sin(age * 0.4F) * 0.08F;
-		this.frontLegR.xRot = Mth.sin(age * 0.4F + (float) Math.PI) * 0.08F;
-		this.backLegL.xRot = Mth.sin(age * 0.4F + (float) Math.PI) * 0.08F;
-		this.backLegR.xRot = Mth.sin(age * 0.4F) * 0.08F;
+		this.frontLegL.xRot = Mth.sin(age * 0.4F) * 0.16F;
+		this.frontLegR.xRot = Mth.sin(age * 0.4F + (float) Math.PI) * 0.16F;
+		this.backLegL.xRot = Mth.sin(age * 0.4F + (float) Math.PI) * 0.16F;
+		this.backLegR.xRot = Mth.sin(age * 0.4F) * 0.16F;
 	}
 }

@@ -3,7 +3,8 @@
 	"package": "functionhook.oldwu.mixin",
 	"compatibilityLevel": "JAVA_25",
 	"mixins": [
-		"CatMixin"
+		"CatMixin",
+		"MobMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

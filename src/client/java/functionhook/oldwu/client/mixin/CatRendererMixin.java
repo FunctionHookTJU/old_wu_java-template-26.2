@@ -68,6 +68,7 @@ public abstract class CatRendererMixin implements CatStateModelHolder {
 		boolean maodie = CatMatingLogic.isMaodie(entity);
 		((CatStateCarrier) (Object) state).oldwu_setMaodie(maodie);
 		((CatStateCarrier) (Object) state).oldwu_setStateId(CatPartners.getState(entity).ordinal());
+		((CatStateCarrier) (Object) state).oldwu_setDanceModelIndex(CatPartners.getDanceModelIndex(entity));
 		if (maodie) {
 			state.texture = MAODIE_TEXTURE;
 		}

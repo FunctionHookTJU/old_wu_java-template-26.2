@@ -15,8 +15,26 @@ public final class CatPartners {
 	public static final EntityDataAccessor<Integer> ATTACK_COOLDOWN = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> FLAT_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> PAIRING_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	public static final EntityDataAccessor<Integer> DANCE_MODEL_INDEX = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	public static final EntityDataAccessor<Integer> DANCE_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 
 	private CatPartners() {
+	}
+
+	public static int getDanceModelIndex(Cat cat) {
+		return cat.getEntityData().get(DANCE_MODEL_INDEX);
+	}
+
+	public static void setDanceModelIndex(Cat cat, int value) {
+		cat.getEntityData().set(DANCE_MODEL_INDEX, value);
+	}
+
+	public static int getDanceTimer(Cat cat) {
+		return cat.getEntityData().get(DANCE_TIMER);
+	}
+
+	public static void setDanceTimer(Cat cat, int value) {
+		cat.getEntityData().set(DANCE_TIMER, value);
 	}
 
 	/**

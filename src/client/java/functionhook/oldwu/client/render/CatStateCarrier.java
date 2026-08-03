@@ -8,4 +8,8 @@ public interface CatStateCarrier {
 	boolean oldwu_isMaodie();
 
 	void oldwu_setMaodie(boolean maodie);
+
+	int oldwu_getDanceModelIndex();
+
+	void oldwu_setDanceModelIndex(int index);
 }
