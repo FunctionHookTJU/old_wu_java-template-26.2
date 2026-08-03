@@ -1,5 +1,6 @@
 package functionhook.oldwu.client.model;
 
+import net.minecraft.client.animation.KeyframeAnimation;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -10,23 +11,26 @@ import net.minecraft.client.model.geom.builders.LayerDefinition;
 import net.minecraft.client.model.geom.builders.MeshDefinition;
 import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.entity.state.CatRenderState;
-import net.minecraft.util.Mth;
 
 import functionhook.oldwu.Old_Wu_java;
+import functionhook.oldwu.cat.CatState;
+import functionhook.oldwu.client.animation.CatAnimations;
+import functionhook.oldwu.client.render.CatStateCarrier;
 
 /**
  * 战斗状态幼年模型（Blockbench 导出后适配 26.2 渲染 API，32×32）。
+ * battle 状态播放 BATTLE_BABY 关键帧动画；dance 状态播放 SPIN 旋转动画。
  */
 public class BattleCatBabyModel extends EntityModel<CatRenderState> {
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(Old_Wu_java.id("cat_battle_baby"), "main");
 
-	private final ModelPart head;
-	private final ModelPart tail1;
+	private final KeyframeAnimation battle;
+	private final KeyframeAnimation spin;
 
 	public BattleCatBabyModel(ModelPart root) {
 		super(root);
-		this.head = root.getChild("body").getChild("head");
-		this.tail1 = root.getChild("body").getChild("tail1");
+		this.battle = CatAnimations.BATTLE_BABY.bake(root);
+		this.spin = CatAnimations.SPIN_BABY.bake(root);
 	}
 
 	public static LayerDefinition createBodyLayer() {
@@ -90,9 +94,14 @@ public class BattleCatBabyModel extends EntityModel<CatRenderState> {
 	public void setupAnim(CatRenderState state) {
 		super.setupAnim(state);
 
-		float age = state.ageInTicks;
-		this.head.yRot += Mth.sin(age * 0.5F) * 0.16F;
-		this.head.xRot += Mth.sin(age * 0.35F) * 0.08F;
-		this.tail1.zRot += Mth.sin(age * 0.8F) * 0.24F;
+		if (state instanceof CatStateCarrier carrier) {
+			int stateId = carrier.oldwu_getStateId();
+			long time = (long) (state.ageInTicks * 50.0F);
+			if (stateId == CatState.BATTLE.ordinal()) {
+				this.battle.apply(time, 1.0F);
+			} else if (stateId == CatState.DANCE.ordinal()) {
+				this.spin.apply(time, 1.0F);
+			}
+		}
 	}
 }

@@ -1,5 +1,6 @@
 package functionhook.oldwu.client.model;
 
+import net.minecraft.client.animation.KeyframeAnimation;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -13,6 +14,9 @@ import net.minecraft.client.renderer.entity.state.CatRenderState;
 import net.minecraft.util.Mth;
 
 import functionhook.oldwu.Old_Wu_java;
+import functionhook.oldwu.cat.CatState;
+import functionhook.oldwu.client.animation.CatAnimations;
+import functionhook.oldwu.client.render.CatStateCarrier;
 
 /**
  * 愤怒状态模型（Blockbench 导出后适配 26.2 渲染 API）。
@@ -29,8 +33,11 @@ public class AngryCatModel extends EntityModel<CatRenderState> {
 	private final ModelPart frontLegL;
 	private final ModelPart frontLegR;
 
+	private final KeyframeAnimation spin;
+
 	public AngryCatModel(ModelPart root) {
 		super(root);
+		this.spin = CatAnimations.SPIN.bake(root);
 		this.head = root.getChild("body").getChild("head");
 		this.tail1 = root.getChild("body").getChild("tail1");
 		this.tail2 = this.tail1.getChild("tail2");
@@ -130,5 +137,9 @@ public class AngryCatModel extends EntityModel<CatRenderState> {
 		this.frontLegR.xRot = Mth.sin(age * 0.3F + (float) Math.PI) * 0.05F;
 		this.backLegL.xRot = Mth.sin(age * 0.3F + (float) Math.PI) * 0.05F;
 		this.backLegR.xRot = Mth.sin(age * 0.3F) * 0.05F;
+
+		if (state instanceof CatStateCarrier carrier && carrier.oldwu_getStateId() == CatState.DANCE.ordinal()) {
+			this.spin.apply((long) (state.ageInTicks * 50.0F), 1.0F);
+		}
 	}
 }

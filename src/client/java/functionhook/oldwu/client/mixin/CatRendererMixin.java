@@ -15,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 import functionhook.oldwu.Old_Wu_java;
 import functionhook.oldwu.cat.CatMatingLogic;
 import functionhook.oldwu.cat.CatPartners;
+import functionhook.oldwu.cat.CatState;
 import functionhook.oldwu.client.model.AngryCatBabyModel;
 import functionhook.oldwu.client.model.AngryCatModel;
 import functionhook.oldwu.client.model.BattleCatBabyModel;
@@ -71,6 +72,10 @@ public abstract class CatRendererMixin implements CatStateModelHolder {
 		((CatStateCarrier) (Object) state).oldwu_setDanceModelIndex(CatPartners.getDanceModelIndex(entity));
 		if (maodie) {
 			state.texture = MAODIE_TEXTURE;
+		}
+		if (CatPartners.getState(entity) == CatState.RECOVERY) {
+			// 回血状态绿色发光
+			state.outlineColor = 0xFF00FF00;
 		}
 	}
 

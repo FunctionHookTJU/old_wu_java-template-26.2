@@ -1,5 +1,6 @@
 package functionhook.oldwu.client.model;
 
+import net.minecraft.client.animation.KeyframeAnimation;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -13,6 +14,9 @@ import net.minecraft.client.renderer.entity.state.CatRenderState;
 import net.minecraft.util.Mth;
 
 import functionhook.oldwu.Old_Wu_java;
+import functionhook.oldwu.cat.CatState;
+import functionhook.oldwu.client.animation.CatAnimations;
+import functionhook.oldwu.client.render.CatStateCarrier;
 
 /**
  * 压扁（flat）状态模型（Blockbench 导出后适配 26.2 渲染 API）。
@@ -23,8 +27,11 @@ public class FlatCatModel extends EntityModel<CatRenderState> {
 	private final ModelPart head;
 	private final ModelPart tail2;
 
+	private final KeyframeAnimation spin;
+
 	public FlatCatModel(ModelPart root) {
 		super(root);
+		this.spin = CatAnimations.SPIN.bake(root);
 		this.head = root.getChild("body").getChild("head");
 		this.tail2 = root.getChild("body").getChild("tail1").getChild("tail2");
 	}
@@ -106,5 +113,9 @@ public class FlatCatModel extends EntityModel<CatRenderState> {
 		float age = state.ageInTicks;
 		this.head.yRot += Mth.sin(age * 0.2F) * 0.03F;
 		this.tail2.zRot += Mth.sin(age * 0.3F) * 0.06F;
+
+		if (state instanceof CatStateCarrier carrier && carrier.oldwu_getStateId() == CatState.DANCE.ordinal()) {
+			this.spin.apply((long) (state.ageInTicks * 50.0F), 1.0F);
+		}
 	}
 }
