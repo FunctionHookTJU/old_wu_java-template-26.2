@@ -93,8 +93,28 @@ public final class CatMatingLogic {
 			return;
 		}
 
-		if (CatPartners.getState(cat) == CatState.GROOMING) {
-			groomingTick(level, cat);
+		// 无法进入生气或配对模式
+		if (CatPartners.getBattlePeaceTimer(cat) > 0) {
+			CatPartners.getPartner(cat).ifPresent(partnerId -> {
+				if (cat.level().getEntity(partnerId) instanceof Cat other) {
+					CatPartners.setPartner(other, null);
+
+					if (CatPartners.getState(other) == CatState.ANGRY
+							|| CatPartners.getState(other) == CatState.PAIRING
+							|| CatPartners.getState(other) == CatState.BATTLE) {
+						transitionTo(other, CatState.COMMON);
+					}
+				}
+			});
+
+			CatPartners.setPartner(cat, null);
+
+			if (CatPartners.getState(cat) == CatState.ANGRY
+					|| CatPartners.getState(cat) == CatState.PAIRING
+					|| CatPartners.getState(cat) == CatState.BATTLE) {
+				transitionTo(cat, CatState.COMMON);
+			}
+
 			return;
 		}
 
