@@ -15,6 +15,10 @@ public abstract class CatRenderStateMixin implements CatStateCarrier {
 	private boolean oldwuMaodie;
 	@Unique
 	private int oldwuDanceModelIndex;
+	@Unique
+	private boolean oldwuMaodieHaqi;
+	@Unique
+	private int oldwuMaodieAnimTick;
 
 	@Override
 	public int oldwu_getStateId() {
@@ -44,5 +48,25 @@ public abstract class CatRenderStateMixin implements CatStateCarrier {
 	@Override
 	public void oldwu_setDanceModelIndex(int index) {
 		this.oldwuDanceModelIndex = index;
+	}
+
+	@Override
+	public boolean oldwu_isMaodieHaqi() {
+		return this.oldwuMaodieHaqi;
+	}
+
+	@Override
+	public void oldwu_setMaodieHaqi(boolean haqi) {
+		this.oldwuMaodieHaqi = haqi;
+	}
+
+	@Override
+	public int oldwu_getMaodieAnimTick() {
+		return this.oldwuMaodieAnimTick;
+	}
+
+	@Override
+	public void oldwu_setMaodieAnimTick(int tick) {
+		this.oldwuMaodieAnimTick = tick;
 	}
 }

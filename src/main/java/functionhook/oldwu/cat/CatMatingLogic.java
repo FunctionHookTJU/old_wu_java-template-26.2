@@ -56,15 +56,19 @@ public final class CatMatingLogic {
 	}
 
 	public static void tick(ServerLevel level, Cat cat) {
+		if (!isMaodie(cat)) {
+			// 不再是被命名为 "maodie" 的猫时，清理残留的 Boss 血条
+			MaodieLogic.removeBossBar(cat);
+		}
+
 		if (cat.isOrderedToSit()) {
 			return;
 		}
 
 		if (isMaodie(cat)) {
-			// AI/行为逻辑已由 MobMixin.isEffectiveAi 拦截；此处仅兜底清理
+			// maodie 的专属行为逻辑（攻击玩家、狂暴发射纸筒等）
 			CatPartners.setPartner(cat, null);
-			CatPartners.setState(cat, CatState.COMMON);
-			cat.getNavigation().stop();
+			MaodieLogic.tick(level, cat);
 			return;
 		}
 
@@ -106,6 +110,11 @@ public final class CatMatingLogic {
 
 		Optional<UUID> partnerId = CatPartners.getPartner(cat);
 		if (partnerId.isPresent()) {
+			// 范围内出现 maodie 时，普通猫停止互相配对，切换目标到 maodie
+			if (retargetToMaodie(cat, partnerId.get())) {
+				return;
+			}
+
 			LivingEntity partner = cat.level().getEntity(partnerId.get()) instanceof LivingEntity living ? living : null;
 			if (partner == null) {
 				CatPartners.setPartner(cat, null);
@@ -231,24 +240,84 @@ public final class CatMatingLogic {
 	}
 
 	private static void tryAngryNearby(Cat cat) {
-		findCandidate(cat).ifPresentOrElse(other -> {
-			transitionTo(cat, CatState.ANGRY);
-			if (cat.distanceToSqr(other) > STOP_DISTANCE_SQR) {
-				cat.getNavigation().moveTo(other, 1.0);
-			} else {
-				cat.getNavigation().stop();
-				CatPartners.setPartner(cat, other.getUUID());
-				CatPartners.setPartner(other, cat.getUUID());
-				CatPartners.setPairingTimer(cat, PAIRING_DELAY_TICKS);
-				CatPartners.setPairingTimer(other, PAIRING_DELAY_TICKS);
-				transitionTo(cat, CatState.PAIRING);
-				transitionTo(other, CatState.PAIRING);
+		findCandidate(cat).ifPresentOrElse(
+			other -> chaseAndPair(cat, other),
+			() -> {
+				if (transitionTo(cat, CatState.COMMON)) {
+					cat.getNavigation().stop();
+				}
 			}
-		}, () -> {
-			if (transitionTo(cat, CatState.COMMON)) {
-				cat.getNavigation().stop();
-			}
-		});
+		);
+	}
+
+	/**
+	 * 走向目标并进入 angry；到达附近后互存 UUID、进入 pairing。
+	 */
+	private static void chaseAndPair(Cat cat, Cat target) {
+		transitionTo(cat, CatState.ANGRY);
+		if (cat.distanceToSqr(target) > STOP_DISTANCE_SQR) {
+			cat.getNavigation().moveTo(target, 1.0);
+		} else {
+			cat.getNavigation().stop();
+			CatPartners.setPartner(cat, target.getUUID());
+			CatPartners.setPartner(target, cat.getUUID());
+			CatPartners.setPairingTimer(cat, PAIRING_DELAY_TICKS);
+			CatPartners.setPairingTimer(target, PAIRING_DELAY_TICKS);
+			transitionTo(cat, CatState.PAIRING);
+			transitionTo(target, CatState.PAIRING);
+		}
+	}
+
+	/**
+	 * 普通猫已与另一只普通猫配对时，若索敌范围内出现 maodie，则解除原配对并转向 maodie。
+	 *
+	 * @return 本 tick 是否已由 maodie 目标接管
+	 */
+	private static boolean retargetToMaodie(Cat cat, UUID currentPartnerId) {
+		Cat maodie = findNearbyMaodie(cat);
+		if (maodie == null || maodie.getUUID().equals(currentPartnerId)) {
+			return false;
+		}
+
+		// 解除与原普通猫的配对，使其也能重新索敌到 maodie
+		if (cat.level().getEntity(currentPartnerId) instanceof Cat other) {
+			CatPartners.setPartner(other, null);
+			transitionTo(other, CatState.COMMON);
+		}
+		CatPartners.setPartner(cat, null);
+		chaseAndPair(cat, maodie);
+		return true;
+	}
+
+	private static Optional<Cat> findCandidate(Cat cat) {
+		// 索敌范围内存在 maodie 时，普通猫停止互相配对，优先以 maodie 为目标
+		Cat maodie = findNearbyMaodie(cat);
+		if (maodie != null) {
+			return Optional.of(maodie);
+		}
+
+		List<Cat> candidates = cat.level().getEntitiesOfClass(
+			Cat.class,
+			new AABB(cat.blockPosition()).inflate(ATTRACT_RANGE),
+			candidate -> candidate != cat && !CatPartners.isPaired(candidate) && !candidate.isOrderedToSit()
+		);
+		if (candidates.isEmpty()) {
+			return Optional.empty();
+		}
+
+		return Optional.of(candidates.get(cat.getRandom().nextInt(candidates.size())));
+	}
+
+	/**
+	 * 索敌范围内是否存在被命名为 "maodie" 的猫。
+	 */
+	private static Cat findNearbyMaodie(Cat cat) {
+		List<Cat> maodies = cat.level().getEntitiesOfClass(
+			Cat.class,
+			new AABB(cat.blockPosition()).inflate(ATTRACT_RANGE),
+			candidate -> candidate != cat && isMaodie(candidate) && !candidate.isRemoved()
+		);
+		return maodies.isEmpty() ? null : maodies.get(cat.getRandom().nextInt(maodies.size()));
 	}
 
 	private static void pairingTick(Cat cat, LivingEntity partner) {
@@ -316,9 +385,10 @@ public final class CatMatingLogic {
 			CatPartners.setAttackCooldown(cat, nextAttackDelay(cat));
 		}
 
-		// 战斗中任意一方生命 ≤1，双方同时进入回血（回血结束后继续战斗）
+		// 战斗中任意一方生命 ≤1，双方同时进入回血（回血结束后继续战斗）；
+		// 若对手是 maodie 则由其自行管理，普通猫单独回血
 		if (cat.getHealth() <= RECOVERY_HEALTH || partner.getHealth() <= RECOVERY_HEALTH) {
-			if (partner instanceof Cat other) {
+			if (partner instanceof Cat other && !isMaodie(other)) {
 				startRecoveryPair(cat, other);
 			} else {
 				startRecovery(cat);
@@ -458,19 +528,6 @@ public final class CatMatingLogic {
 
 	private static int nextAttackDelay(Cat cat) {
 		return ATTACK_MIN_DELAY + cat.getRandom().nextInt(ATTACK_MAX_DELAY - ATTACK_MIN_DELAY + 1);
-	}
-
-	private static Optional<Cat> findCandidate(Cat cat) {
-		List<Cat> candidates = cat.level().getEntitiesOfClass(
-			Cat.class,
-			new AABB(cat.blockPosition()).inflate(ATTRACT_RANGE),
-			candidate -> candidate != cat && !CatPartners.isPaired(candidate) && !candidate.isOrderedToSit()
-		);
-		if (candidates.isEmpty()) {
-			return Optional.empty();
-		}
-
-		return Optional.of(candidates.get(cat.getRandom().nextInt(candidates.size())));
 	}
 
 	/**

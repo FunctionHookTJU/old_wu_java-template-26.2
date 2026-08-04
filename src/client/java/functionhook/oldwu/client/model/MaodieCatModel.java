@@ -1,5 +1,6 @@
 package functionhook.oldwu.client.model;
 
+import net.minecraft.client.animation.KeyframeAnimation;
 import net.minecraft.client.model.EntityModel;
 import net.minecraft.client.model.geom.ModelLayerLocation;
 import net.minecraft.client.model.geom.ModelPart;
@@ -12,15 +13,23 @@ import net.minecraft.client.model.geom.builders.PartDefinition;
 import net.minecraft.client.renderer.entity.state.CatRenderState;
 
 import functionhook.oldwu.Old_Wu_java;
+import functionhook.oldwu.client.animation.MaodieAnimations;
+import functionhook.oldwu.client.render.CatStateCarrier;
 
 /**
- * 被命名为 "maodie" 的猫使用的静态模型（Blockbench 导出后适配 26.2 渲染 API，32×32）。
+ * 被命名为 "maodie" 的猫使用的静态模型（Blockbench maodie.java 导出后适配 26.2 渲染 API，32×32）。
+ * 近战攻击/发射纸筒时播放挥击动画。
  */
 public class MaodieCatModel extends EntityModel<CatRenderState> {
 	public static final ModelLayerLocation LAYER_LOCATION = new ModelLayerLocation(Old_Wu_java.id("cat_maodie"), "main");
 
+	private final ModelPart bone;
+	private final KeyframeAnimation attack;
+
 	public MaodieCatModel(ModelPart root) {
 		super(root);
+		this.bone = root.getChild("bone");
+		this.attack = MaodieAnimations.MAODIE_ATTACK.bake(root);
 	}
 
 	public static LayerDefinition createBodyLayer() {
@@ -81,8 +90,8 @@ public class MaodieCatModel extends EntityModel<CatRenderState> {
 		PartDefinition handR = bone.addOrReplaceChild("handR", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 		handR.addOrReplaceChild(
 			"cube_r4",
-			CubeListBuilder.create().texOffs(20, 14).addBox(-1.0F, -3.0F, -1.0F, 1.0F, 3.0F, 2.0F, new CubeDeformation(0.0F)),
-			PartPose.offsetAndRotation(3.0F, -5.0F, 2.0F, 0.0F, 0.0F, -0.2182F)
+			CubeListBuilder.create().texOffs(14, 13).addBox(0.0F, -3.0F, -1.0F, 1.0F, 3.0F, 2.0F, new CubeDeformation(0.0F)),
+			PartPose.offsetAndRotation(-3.0F, -5.0F, 2.0F, 0.0F, 0.0F, 0.2182F)
 		);
 		handR.addOrReplaceChild(
 			"cube_r5",
@@ -93,8 +102,8 @@ public class MaodieCatModel extends EntityModel<CatRenderState> {
 		PartDefinition handL = bone.addOrReplaceChild("handL", CubeListBuilder.create(), PartPose.offset(0.0F, 0.0F, 0.0F));
 		handL.addOrReplaceChild(
 			"cube_r6",
-			CubeListBuilder.create().texOffs(14, 13).addBox(0.0F, -3.0F, -1.0F, 1.0F, 3.0F, 2.0F, new CubeDeformation(0.0F)),
-			PartPose.offsetAndRotation(-3.0F, -5.0F, 2.0F, 0.0F, 0.0F, 0.2182F)
+			CubeListBuilder.create().texOffs(20, 14).addBox(-1.0F, -3.0F, -1.0F, 1.0F, 3.0F, 2.0F, new CubeDeformation(0.0F)),
+			PartPose.offsetAndRotation(3.0F, -5.0F, 2.0F, 0.0F, 0.0F, -0.2182F)
 		);
 		handL.addOrReplaceChild(
 			"cube_r7",
@@ -114,5 +123,15 @@ public class MaodieCatModel extends EntityModel<CatRenderState> {
 	@Override
 	public void setupAnim(CatRenderState state) {
 		super.setupAnim(state);
+
+		if (state instanceof CatStateCarrier carrier) {
+			int animTick = carrier.oldwu_getMaodieAnimTick();
+			if (animTick > 0) {
+				long elapsedMs = (long) ((state.ageInTicks - animTick) * 50.0F);
+				if (elapsedMs >= 0 && elapsedMs < MaodieAnimations.ATTACK_DURATION_MS) {
+					this.attack.apply(elapsedMs, 1.0F);
+				}
+			}
+		}
 	}
 }

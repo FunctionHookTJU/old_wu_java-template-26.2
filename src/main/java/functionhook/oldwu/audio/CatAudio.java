@@ -28,7 +28,17 @@ public final class CatAudio {
 	}
 
 	public static void playStateSound(Cat cat, CatState state) {
-		SoundEvent sound = pickStateSound(cat, state);
+		playSound(cat, pickStateSound(cat, state));
+	}
+
+	/**
+	 * maodie 攻击/发射纸筒时播放 ha 系列音效（带字幕，兼容原版字幕显示）。
+	 */
+	public static void playHaSound(Cat cat) {
+		playSound(cat, pickRandom(cat, ModSounds.HA_SERIES));
+	}
+
+	private static void playSound(Cat cat, SoundEvent sound) {
 		if (sound == null) {
 			return;
 		}

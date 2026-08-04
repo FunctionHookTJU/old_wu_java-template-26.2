@@ -17,6 +17,9 @@ public final class CatPartners {
 	public static final EntityDataAccessor<Integer> PAIRING_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> DANCE_MODEL_INDEX = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> DANCE_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	public static final EntityDataAccessor<Integer> MAODIE_HAQI_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	public static final EntityDataAccessor<Integer> MAODIE_RAGE_COOLDOWN = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	public static final EntityDataAccessor<Integer> MAODIE_ANIM_TICK = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 
 	private CatPartners() {
 	}
@@ -46,6 +49,30 @@ public final class CatPartners {
 		if (PARTNER_UUID == null || STATE == null || ATTACK_COOLDOWN == null || FLAT_TIMER == null || PAIRING_TIMER == null) {
 			throw new IllegalStateException("Cat data accessors not initialized");
 		}
+	}
+
+	public static int getMaodieHaqiTimer(Cat cat) {
+		return cat.getEntityData().get(MAODIE_HAQI_TIMER);
+	}
+
+	public static void setMaodieHaqiTimer(Cat cat, int value) {
+		cat.getEntityData().set(MAODIE_HAQI_TIMER, value);
+	}
+
+	public static int getMaodieRageCooldown(Cat cat) {
+		return cat.getEntityData().get(MAODIE_RAGE_COOLDOWN);
+	}
+
+	public static void setMaodieRageCooldown(Cat cat, int value) {
+		cat.getEntityData().set(MAODIE_RAGE_COOLDOWN, value);
+	}
+
+	public static int getMaodieAnimTick(Cat cat) {
+		return cat.getEntityData().get(MAODIE_ANIM_TICK);
+	}
+
+	public static void setMaodieAnimTick(Cat cat, int value) {
+		cat.getEntityData().set(MAODIE_ANIM_TICK, value);
 	}
 
 	public static int getPairingTimer(Cat cat) {

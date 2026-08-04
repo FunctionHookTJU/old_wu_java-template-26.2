@@ -36,6 +36,9 @@ public abstract class CatMixin {
 		entityData.define(CatPartners.PAIRING_TIMER, 0);
 		entityData.define(CatPartners.DANCE_MODEL_INDEX, 0);
 		entityData.define(CatPartners.DANCE_TIMER, 0);
+		entityData.define(CatPartners.MAODIE_HAQI_TIMER, 0);
+		entityData.define(CatPartners.MAODIE_RAGE_COOLDOWN, 0);
+		entityData.define(CatPartners.MAODIE_ANIM_TICK, 0);
 	}
 
 	@Inject(method = "customServerAiStep", at = @At("TAIL"))

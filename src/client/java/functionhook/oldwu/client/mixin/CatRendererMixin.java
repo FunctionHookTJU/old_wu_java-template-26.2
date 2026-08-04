@@ -29,8 +29,9 @@ import functionhook.oldwu.client.render.CatStateCarrier;
 import functionhook.oldwu.client.render.CatStateModelHolder;
 
 @Mixin(CatRenderer.class)
-public abstract class CatRendererMixin implements CatStateModelHolder {
+	public abstract class CatRendererMixin implements CatStateModelHolder {
 	private static final Identifier MAODIE_TEXTURE = Old_Wu_java.id("textures/entity/maodie.png");
+	private static final Identifier HAQI_TEXTURE = Old_Wu_java.id("textures/entity/haqi.png");
 
 	@Unique
 	private MaodieCatModel oldwuMaodieModel;
@@ -67,11 +68,14 @@ public abstract class CatRendererMixin implements CatStateModelHolder {
 	@Inject(method = "extractRenderState", at = @At("TAIL"))
 	private void oldwu_extractState(Cat entity, CatRenderState state, float partialTicks, CallbackInfo ci) {
 		boolean maodie = CatMatingLogic.isMaodie(entity);
+		boolean haqi = maodie && CatPartners.getMaodieHaqiTimer(entity) > 0;
 		((CatStateCarrier) (Object) state).oldwu_setMaodie(maodie);
+		((CatStateCarrier) (Object) state).oldwu_setMaodieHaqi(haqi);
 		((CatStateCarrier) (Object) state).oldwu_setStateId(CatPartners.getState(entity).ordinal());
 		((CatStateCarrier) (Object) state).oldwu_setDanceModelIndex(CatPartners.getDanceModelIndex(entity));
+		((CatStateCarrier) (Object) state).oldwu_setMaodieAnimTick(CatPartners.getMaodieAnimTick(entity));
 		if (maodie) {
-			state.texture = MAODIE_TEXTURE;
+			state.texture = haqi ? HAQI_TEXTURE : MAODIE_TEXTURE;
 		}
 		if (CatPartners.getState(entity) == CatState.RECOVERY) {
 			// 回血状态绿色发光

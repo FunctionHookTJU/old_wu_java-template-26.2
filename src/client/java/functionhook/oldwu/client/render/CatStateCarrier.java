@@ -12,4 +12,12 @@ public interface CatStateCarrier {
 	int oldwu_getDanceModelIndex();
 
 	void oldwu_setDanceModelIndex(int index);
+
+	boolean oldwu_isMaodieHaqi();
+
+	void oldwu_setMaodieHaqi(boolean haqi);
+
+	int oldwu_getMaodieAnimTick();
+
+	void oldwu_setMaodieAnimTick(int tick);
 }
