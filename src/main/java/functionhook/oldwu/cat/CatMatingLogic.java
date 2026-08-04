@@ -87,6 +87,11 @@ public final class CatMatingLogic {
 			return;
 		}
 
+		if (CatPartners.getState(cat) == CatState.GROOMING) {
+			groomingTick(cat);
+			return;
+		}
+
 		// dance/flat 可打断任意状态：0.5 格内被马/驴/骡/猪/骆驼冲撞
 		if (tryDanceOrFlat(cat)) {
 			return;
@@ -545,5 +550,16 @@ public final class CatMatingLogic {
 			return true;
 		}
 		return false;
+	}
+
+	private static void groomingTick(Cat cat){
+		cat.getNavigation().stop();
+
+		int timer = CatPartners.getGroomingTimer(cat);
+		if (timer > 0){
+			CatPartners.setGroomingTimer(cat, timer - 1);
+		} else {
+			transitionTo(cat, CatState.COMMON);
+		}
 	}
 }

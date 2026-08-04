@@ -39,7 +39,10 @@ public abstract class CatMixin {
 		entityData.define(CatPartners.MAODIE_HAQI_TIMER, 0);
 		entityData.define(CatPartners.MAODIE_RAGE_COOLDOWN, 0);
 		entityData.define(CatPartners.MAODIE_ANIM_TICK, 0);
+		entityData.define(CatPartners.GROOMING_TIMER, 0);
 	}
+
+
 
 	@Inject(method = "customServerAiStep", at = @At("TAIL"))
 	private void oldwu_mateLogic(ServerLevel level, CallbackInfo ci) {

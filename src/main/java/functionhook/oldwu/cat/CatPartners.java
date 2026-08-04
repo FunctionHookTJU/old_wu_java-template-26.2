@@ -20,6 +20,7 @@ public final class CatPartners {
 	public static final EntityDataAccessor<Integer> MAODIE_HAQI_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> MAODIE_RAGE_COOLDOWN = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> MAODIE_ANIM_TICK = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	public static final EntityDataAccessor<Integer> GROOMING_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 
 	private CatPartners() {
 	}
@@ -89,6 +90,14 @@ public final class CatPartners {
 
 	public static void setFlatTimer(Cat cat, int value) {
 		cat.getEntityData().set(FLAT_TIMER, value);
+	}
+
+	public static int getGroomingTimer(Cat cat) {
+		return cat.getEntityData().get(GROOMING_TIMER);
+	}
+
+	public static void setGroomingTimer(Cat cat, int value) {
+		cat.getEntityData().set(GROOMING_TIMER, value);
 	}
 
 	public static int getAttackCooldown(Cat cat) {
