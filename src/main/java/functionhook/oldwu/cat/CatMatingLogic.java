@@ -93,7 +93,7 @@ public final class CatMatingLogic {
 			return;
 		}
 
-		// 无法进入生气或配对模式
+		// 无法进入生气或配对模式，这段是对应代码
 		if (CatPartners.getBattlePeaceTimer(cat) > 0) {
 			CatPartners.getPartner(cat).ifPresent(partnerId -> {
 				if (cat.level().getEntity(partnerId) instanceof Cat other) {
