@@ -66,8 +66,10 @@ public class PaperRollItem extends Item {
 			roll.setOwner(player);
 			roll.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, speed, 0.0F);
 			serverLevel.addFreshEntity(roll);
-			// 发射消耗 1 个纸卷
-			stack.shrink(1);
+			// 仅创造模式（instabuild）不消耗；生存/冒险等其它模式正常消耗 1 个纸卷
+			if (!player.getAbilities().instabuild) {
+				stack.shrink(1);
+			}
 		}
 
 		level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.EGG_THROW, SoundSource.PLAYERS, 1.0F, 1.0F);

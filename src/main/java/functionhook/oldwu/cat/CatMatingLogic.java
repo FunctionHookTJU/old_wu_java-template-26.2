@@ -12,6 +12,7 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
+import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.animal.feline.Cat;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
@@ -86,7 +87,7 @@ public final class CatMatingLogic {
 			return;
 		}
 
-		// dance/flat 可打断任意状态：0.5 格内被马/驴/骡/猪冲撞
+		// dance/flat 可打断任意状态：0.5 格内被马/驴/骡/猪/骆驼冲撞
 		if (tryDanceOrFlat(cat)) {
 			return;
 		}
@@ -132,7 +133,7 @@ public final class CatMatingLogic {
 	}
 
 	/**
-	 * 被马/驴/骡/猪（无论是否被骑乘）冲撞或经过时，猫 50% 概率进入 dance、50% 概率进入 flat。
+	 * 被马/驴/骡/猪/骆驼（无论是否被骑乘）冲撞或经过时，猫 50% 概率进入 dance、50% 概率进入 flat。
 	 */
 	private static boolean tryDanceOrFlat(Cat cat) {
 		if (findNearbyMount(cat) == null) {
@@ -152,6 +153,10 @@ public final class CatMatingLogic {
 		List<AbstractHorse> horses = cat.level().getEntitiesOfClass(AbstractHorse.class, range, horse -> !horse.isRemoved());
 		if (!horses.isEmpty()) {
 			return horses.get(0);
+		}
+		List<Camel> camels = cat.level().getEntitiesOfClass(Camel.class, range, camel -> !camel.isRemoved());
+		if (!camels.isEmpty()) {
+			return camels.get(0);
 		}
 		List<Pig> pigs = cat.level().getEntitiesOfClass(Pig.class, range, pig -> !pig.isRemoved());
 		return pigs.isEmpty() ? null : pigs.get(0);
