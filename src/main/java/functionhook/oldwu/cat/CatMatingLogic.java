@@ -563,7 +563,7 @@ public final class CatMatingLogic {
 					cat.getX(),
 					cat.getY(),
 					cat.getZ(),
-					3,
+					10,
 					cat.getBbWidth() * 0.4,
 					cat.getBbHeight() * 0.25,
 					cat.getBbWidth() * 0.4,

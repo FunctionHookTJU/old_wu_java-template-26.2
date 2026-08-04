@@ -21,7 +21,7 @@ public final class CatPartners {
 	public static final EntityDataAccessor<Integer> MAODIE_RAGE_COOLDOWN = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> MAODIE_ANIM_TICK = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> GROOMING_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
-
+	public static final EntityDataAccessor<Integer> BATTLE_PEACE_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	private CatPartners() {
 	}
 
@@ -100,13 +100,13 @@ public final class CatPartners {
 		cat.getEntityData().set(GROOMING_TIMER, value);
 	}
 
-	public static int getAttackCooldown(Cat cat) {
-		return cat.getEntityData().get(ATTACK_COOLDOWN);
-	}
+	public static int getAttackCooldown(Cat cat) {return cat.getEntityData().get(ATTACK_COOLDOWN);}
 
-	public static void setAttackCooldown(Cat cat, int value) {
-		cat.getEntityData().set(ATTACK_COOLDOWN, value);
-	}
+	public static void setAttackCooldown(Cat cat, int value) { cat.getEntityData().set(ATTACK_COOLDOWN, value);}
+
+	public static int getBattlePeaceTimer(Cat cat) {return cat.getEntityData().get(BATTLE_PEACE_TIMER);}
+
+	public static void setBattlePeaceTimer(Cat cat, int value) { cat.getEntityData().set(BATTLE_PEACE_TIMER, value);}
 
 	public static CatState getState(Cat cat) {
 		return CatState.fromInt(cat.getEntityData().get(STATE));
@@ -115,6 +115,8 @@ public final class CatPartners {
 	public static void setState(Cat cat, CatState state) {
 		cat.getEntityData().set(STATE, state.ordinal());
 	}
+
+
 
 	public static Optional<UUID> getPartner(Cat cat) {
 		String value = cat.getEntityData().get(PARTNER_UUID);

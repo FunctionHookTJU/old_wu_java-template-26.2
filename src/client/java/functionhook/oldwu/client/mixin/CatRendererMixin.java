@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.CatRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.animal.feline.Cat;
+import net.minecraft.client.model.geom.ModelLayers;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -66,7 +67,7 @@ import functionhook.oldwu.client.model.GroomingCatModel;
 		this.oldwuRecoveryBabyModel = new RecoveryCatBabyModel(context.bakeLayer(RecoveryCatBabyModel.LAYER_LOCATION));
 		this.oldwuFlatModel = new FlatCatModel(context.bakeLayer(FlatCatModel.LAYER_LOCATION));
 		this.oldwuFlatBabyModel = new FlatCatBabyModel(context.bakeLayer(FlatCatBabyModel.LAYER_LOCATION));
-		this.oldwuGroomingModel = new GroomingCatModel(context.bakeLayer(GroomingCatModel.LAYER_LOCATION));
+		this.oldwuGroomingModel = new GroomingCatModel(context.bakeLayer(ModelLayers.CAT));
 	}
 
 	@Inject(method = "extractRenderState", at = @At("TAIL"))
