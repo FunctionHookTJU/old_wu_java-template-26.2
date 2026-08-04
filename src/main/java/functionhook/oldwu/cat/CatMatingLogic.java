@@ -58,6 +58,11 @@ public final class CatMatingLogic {
 	}
 
 	public static void tick(ServerLevel level, Cat cat) {
+		int peaceTimer = CatPartners.getBattlePeaceTimer(cat);
+		if (peaceTimer > 0) {
+			CatPartners.setBattlePeaceTimer(cat, peaceTimer - 1);
+		}
+
 		if (!isMaodie(cat)) {
 			// 不再是被命名为 "maodie" 的猫时，清理残留的 Boss 血条
 			MaodieLogic.removeBossBar(cat);
@@ -356,7 +361,14 @@ public final class CatMatingLogic {
 		if (!(partner instanceof Cat other)) {
 			return;
 		}
-
+		if (CatPartners.getBattlePeaceTimer(cat) > 0
+				|| CatPartners.getBattlePeaceTimer(other) > 0) {
+			CatPartners.setPartner(cat, null);
+			CatPartners.setPartner(other, null);
+			transitionTo(cat, CatState.COMMON);
+			transitionTo(other, CatState.COMMON);
+			return;
+		}
 		transitionTo(cat, CatState.BATTLE);
 		transitionTo(other, CatState.BATTLE);
 		CatPartners.setAttackCooldown(cat, nextAttackDelay(cat));

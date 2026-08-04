@@ -31,14 +31,15 @@ public abstract class AbstractThrownPotionMixin {
 			}
 
 			CatPartners.setGroomingTimer(cat, 100);
+			CatPartners.setBattlePeaceTimer(cat, 600);
 			CatPartners.setState(cat, CatState.GROOMING);
 			CatPartners.setPartner(cat, null);
 			cat.getNavigation().stop();
 			triggeredCats++;
 
 			Old_Wu_java.LOGGER.info(
-				"Water splash forced cat {} into GROOMING for 100 ticks",
-				cat.getUUID()
+					"Water splash forced cat {} into GROOMING for 100 ticks and peace for 600 ticks",
+					cat.getUUID()
 			);
 		}
 
