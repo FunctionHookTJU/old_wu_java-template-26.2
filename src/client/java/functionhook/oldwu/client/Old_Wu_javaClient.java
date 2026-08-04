@@ -2,6 +2,7 @@ package functionhook.oldwu.client;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
 
 import functionhook.oldwu.client.model.AngryCatBabyModel;
@@ -11,10 +12,13 @@ import functionhook.oldwu.client.model.BattleCatModel;
 import functionhook.oldwu.client.model.FlatCatBabyModel;
 import functionhook.oldwu.client.model.FlatCatModel;
 import functionhook.oldwu.client.model.MaodieCatModel;
+import functionhook.oldwu.client.model.PaperRollModel;
 import functionhook.oldwu.client.model.RecoveryCatBabyModel;
 import functionhook.oldwu.client.model.RecoveryCatModel;
 import functionhook.oldwu.client.particle.MaomaoParticle;
 import functionhook.oldwu.client.particle.RecoveryParticle;
+import functionhook.oldwu.client.render.PaperRollRenderer;
+import functionhook.oldwu.entity.ModEntityTypes;
 import functionhook.oldwu.particle.ModParticles;
 
 public class Old_Wu_javaClient implements ClientModInitializer {
@@ -30,6 +34,9 @@ public class Old_Wu_javaClient implements ClientModInitializer {
 		ModelLayerRegistry.registerModelLayer(RecoveryCatBabyModel.LAYER_LOCATION, RecoveryCatBabyModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(FlatCatModel.LAYER_LOCATION, FlatCatModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(FlatCatBabyModel.LAYER_LOCATION, FlatCatBabyModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(PaperRollModel.LAYER_LOCATION, PaperRollModel::createBodyLayer);
+
+		EntityRendererRegistry.register(ModEntityTypes.PAPER_ROLL, PaperRollRenderer::new);
 
 		ParticleProviderRegistry.getInstance().register(ModParticles.RECOVERY, RecoveryParticle.Provider::new);
 		ParticleProviderRegistry.getInstance().register(ModParticles.MAOMAO, MaomaoParticle.Provider::new);
