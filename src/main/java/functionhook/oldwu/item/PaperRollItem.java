@@ -66,6 +66,8 @@ public class PaperRollItem extends Item {
 			roll.setOwner(player);
 			roll.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, speed, 0.0F);
 			serverLevel.addFreshEntity(roll);
+			// 发射消耗 1 个纸卷
+			stack.shrink(1);
 		}
 
 		level.playSound(null, player.getX(), player.getY(), player.getZ(), SoundEvents.EGG_THROW, SoundSource.PLAYERS, 1.0F, 1.0F);
