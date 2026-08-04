@@ -1,5 +1,6 @@
 package functionhook.oldwu.client;
 
+import com.ibm.icu.text.Normalizer2;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
@@ -20,6 +21,7 @@ import functionhook.oldwu.client.particle.RecoveryParticle;
 import functionhook.oldwu.client.render.PaperRollRenderer;
 import functionhook.oldwu.entity.ModEntityTypes;
 import functionhook.oldwu.particle.ModParticles;
+import functionhook.oldwu.client.model.GroomingCatModel;
 
 public class Old_Wu_javaClient implements ClientModInitializer {
 	@Override
@@ -35,6 +37,7 @@ public class Old_Wu_javaClient implements ClientModInitializer {
 		ModelLayerRegistry.registerModelLayer(FlatCatModel.LAYER_LOCATION, FlatCatModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(FlatCatBabyModel.LAYER_LOCATION, FlatCatBabyModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(PaperRollModel.LAYER_LOCATION, PaperRollModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(GroomingCatModel.LAYER_LOCATION, GroomingCatModel::createBodyLayer);
 
 		EntityRendererRegistry.register(ModEntityTypes.PAPER_ROLL, PaperRollRenderer::new);
 

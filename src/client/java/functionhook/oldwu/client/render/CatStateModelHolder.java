@@ -1,14 +1,6 @@
 package functionhook.oldwu.client.render;
 
-import functionhook.oldwu.client.model.AngryCatBabyModel;
-import functionhook.oldwu.client.model.AngryCatModel;
-import functionhook.oldwu.client.model.BattleCatBabyModel;
-import functionhook.oldwu.client.model.BattleCatModel;
-import functionhook.oldwu.client.model.FlatCatBabyModel;
-import functionhook.oldwu.client.model.FlatCatModel;
-import functionhook.oldwu.client.model.MaodieCatModel;
-import functionhook.oldwu.client.model.RecoveryCatBabyModel;
-import functionhook.oldwu.client.model.RecoveryCatModel;
+import functionhook.oldwu.client.model.*;
 
 public interface CatStateModelHolder {
 	MaodieCatModel oldwu_getMaodieModel();
@@ -28,4 +20,6 @@ public interface CatStateModelHolder {
 	FlatCatModel oldwu_getFlatModel();
 
 	FlatCatBabyModel oldwu_getFlatBabyModel();
+
+	GroomingCatModel oldwu_getGroomingModel();
 }
