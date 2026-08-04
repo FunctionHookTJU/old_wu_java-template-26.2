@@ -61,6 +61,9 @@ public final class CatMatingLogic {
 		int peaceTimer = CatPartners.getBattlePeaceTimer(cat);
 		if (peaceTimer > 0) {
 			CatPartners.setBattlePeaceTimer(cat, peaceTimer - 1);
+			if (peaceTimer % 5 == 0) {
+				spawnWetParticles(level, cat);
+			}
 		}
 
 		if (!isMaodie(cat)) {
@@ -90,6 +93,11 @@ public final class CatMatingLogic {
 
 		if (CatPartners.getState(cat) == CatState.DANCE) {
 			danceTick(cat);
+			return;
+		}
+
+		if (CatPartners.getState(cat) == CatState.GROOMING) {
+			groomingTick(level, cat);
 			return;
 		}
 
@@ -589,23 +597,24 @@ public final class CatMatingLogic {
 		cat.getNavigation().stop();
 
 		int timer = CatPartners.getGroomingTimer(cat);
-		if (timer % 5 == 0){
-			level.sendParticles(
-					ParticleTypes.FALLING_WATER,
-					cat.getX(),
-					cat.getY(),
-					cat.getZ(),
-					10,
-					cat.getBbWidth() * 0.4,
-					cat.getBbHeight() * 0.25,
-					cat.getBbWidth() * 0.4,
-					0.02
-			);
-		}
 		if (timer > 0){
 			CatPartners.setGroomingTimer(cat, timer - 1);
 		} else {
 			transitionTo(cat, CatState.COMMON);
 		}
+	}
+
+	private static void spawnWetParticles(ServerLevel level, Cat cat) {
+		level.sendParticles(
+			ParticleTypes.FALLING_WATER,
+			cat.getX(),
+			cat.getY() + cat.getBbHeight() * 0.75,
+			cat.getZ(),
+			10,
+			cat.getBbWidth() * 0.4,
+			cat.getBbHeight() * 0.25,
+			cat.getBbWidth() * 0.4,
+			0.02
+		);
 	}
 }

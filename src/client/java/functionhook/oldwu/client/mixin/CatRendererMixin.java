@@ -29,6 +29,7 @@ import functionhook.oldwu.client.model.RecoveryCatModel;
 import functionhook.oldwu.client.render.CatStateCarrier;
 import functionhook.oldwu.client.render.CatStateModelHolder;
 import functionhook.oldwu.client.model.GroomingCatModel;
+import functionhook.oldwu.client.model.GroomingCatBabyModel;
 
 @Mixin(CatRenderer.class)
 	public abstract class CatRendererMixin implements CatStateModelHolder {
@@ -55,6 +56,8 @@ import functionhook.oldwu.client.model.GroomingCatModel;
 	private FlatCatBabyModel oldwuFlatBabyModel;
 	@Unique
 	private GroomingCatModel oldwuGroomingModel;
+	@Unique
+	private GroomingCatBabyModel oldwuGroomingBabyModel;
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void oldwu_bakeModels(EntityRendererProvider.Context context, CallbackInfo ci) {
@@ -68,6 +71,7 @@ import functionhook.oldwu.client.model.GroomingCatModel;
 		this.oldwuFlatModel = new FlatCatModel(context.bakeLayer(FlatCatModel.LAYER_LOCATION));
 		this.oldwuFlatBabyModel = new FlatCatBabyModel(context.bakeLayer(FlatCatBabyModel.LAYER_LOCATION));
 		this.oldwuGroomingModel = new GroomingCatModel(context.bakeLayer(ModelLayers.CAT));
+		this.oldwuGroomingBabyModel = new GroomingCatBabyModel(context.bakeLayer(ModelLayers.CAT_BABY));
 	}
 
 	@Inject(method = "extractRenderState", at = @At("TAIL"))
@@ -134,5 +138,12 @@ import functionhook.oldwu.client.model.GroomingCatModel;
 	}
 
 	@Override
-	public GroomingCatModel oldwu_getGroomingModel() { return this.oldwuGroomingModel; }
+	public GroomingCatModel oldwu_getGroomingModel() {
+		return this.oldwuGroomingModel;
+	}
+
+	@Override
+	public GroomingCatBabyModel oldwu_getGroomingBabyModel() {
+		return this.oldwuGroomingBabyModel;
+	}
 }

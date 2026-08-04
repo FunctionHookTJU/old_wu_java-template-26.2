@@ -56,7 +56,7 @@ public abstract class LivingEntityRendererMixin<T extends LivingEntity, S extend
 		} else if (stateId == CatState.FLAT.ordinal()) {
 			stateModel = isBaby ? holder.oldwu_getFlatBabyModel() : holder.oldwu_getFlatModel();
 		} else if (stateId == CatState.GROOMING.ordinal()) {
-			stateModel = holder.oldwu_getGroomingModel();
+			stateModel = isBaby ? holder.oldwu_getGroomingBabyModel() : holder.oldwu_getGroomingModel();
 		}
 
 		if (stateModel != null) {
