@@ -46,16 +46,21 @@ public final class MaodieLogic {
 	public static final double MAX_HEALTH = 325.0;
 	// 原版 generic.scale 属性放大倍率（等价于 /attribute ... generic.scale base set 1.5）
 	public static final double MAODIE_SCALE = 1.5;
-	public static final double RAGE_THRESHOLD = 114.0;
-	public static final int RAGE_FIRE_INTERVAL = 80;
+	public static final double RAGE_THRESHOLD = 180.0;
+	public static final int RAGE_FIRE_INTERVAL = 30;
 	public static final int RAGE_WINDUP_TICKS = 5;
-	public static final float MIN_ATTACK_DAMAGE = 5.0F;
+	// 血量高于狂暴阈值时，每该 tick 数发射一个纸筒
+	public static final int NORMAL_FIRE_INTERVAL = 100;
+	public static final float MIN_ATTACK_DAMAGE = 10.0F;
 	public static final float MAX_ATTACK_DAMAGE = 20.0F;
+	// 血量高于狂暴阈值时，每次近战攻击有该概率被替换为发射一个纸筒
+	public static final float MELEE_ROLL_CHANCE = 0.2F;
 	public static final int POISON_DURATION = 100;
 	public static final int COMBO_DURATION = 160;
 	public static final float POISON_CHANCE = 0.2F;
 	public static final float COMBO_CHANCE = 0.1F;
-	public static final double TARGET_RANGE = 16.0;
+	public static final double TARGET_RANGE = 128.0;
+	public static final double TARGET_RANGE_SQR = TARGET_RANGE * TARGET_RANGE;
 	// 攻击距离 3 格（原 2 格 + 1）
 	public static final double ATTACK_RANGE_SQR = 9.0;
 	public static final double MOVE_SPEED = 1.0;
@@ -67,12 +72,20 @@ public final class MaodieLogic {
 	// 攻击后 haqi 贴图持续时长（tick），与挥击动画时长大致匹配
 	public static final int ATTACK_HAQI_TICKS = 12;
 	public static final float ROLL_SPEED = 4.0F;
+	// 扇形三连发的单侧偏转角度（弧度）
+	public static final float ROLL_FAN_SPREAD = 0.2F;
 	// 身后常驻圆环粒子（#CCA675，DustParticleOptions 使用 RGB24）
 	public static final int RING_COLOR = 0xCCA675;
 	public static final int RING_PARTICLES_PER_TICK = 6;
 	public static final double RING_RADIUS = 1.0;
 	public static final double RING_DISTANCE = 1.2;
 	public static final double RING_HEIGHT = 1.0;
+	// 狂暴时背后更大的红色圆环粒子
+	public static final int RAGE_RING_COLOR = 0xFF0000;
+	public static final int RAGE_RING_PARTICLES_PER_TICK = 8;
+	public static final double RAGE_RING_RADIUS = 1.6;
+	public static final double RAGE_RING_DISTANCE = 1.4;
+	public static final double RAGE_RING_HEIGHT = 1.1;
 	// Boss 血条：原版无 #CCA675 颜色，使用相近的黄色
 	public static final BossBarColor BOSS_BAR_COLOR = BossBarColor.YELLOW;
 	private static final Map<UUID, ServerBossEvent> BOSS_EVENTS = new HashMap<>();
@@ -102,8 +115,11 @@ public final class MaodieLogic {
 			CatPartners.setMaodieHaqiTimer(cat, haqi - 1);
 		}
 
-		// 身后常驻 #CCA675 圆环粒子
+		// 身后常驻 #CCA675 圆环粒子；狂暴时额外显示更大的红色圆环
 		spawnRingParticles(level, cat);
+		if (cat.getHealth() <= RAGE_THRESHOLD) {
+			spawnRageRingParticles(level, cat);
+		}
 
 		LivingEntity target = findTarget(cat);
 		if (target == null) {
@@ -122,13 +138,17 @@ public final class MaodieLogic {
 			attacked = meleeAttack(level, cat, target);
 		}
 
-		// 狂暴：血量 ≤114 时每 100 tick 发射纸筒；蓄力/发射期间延长 haqi
+		// 狂暴：血量 ≤ 阈值时每 RAGE_FIRE_INTERVAL tick 扇形三连发；血量 > 阈值时每 NORMAL_FIRE_INTERVAL tick 单发
 		if (cat.getHealth() <= RAGE_THRESHOLD) {
+			CatPartners.setMaodieNormalFireCooldown(cat, 0);
 			if (rageTick(level, cat, target)) {
 				extendHaqi(cat, RAGE_WINDUP_TICKS + 1);
 			}
 		} else {
 			CatPartners.setMaodieRageCooldown(cat, 0);
+			if (normalFireTick(level, cat, target)) {
+				extendHaqi(cat, ATTACK_HAQI_TICKS);
+			}
 		}
 
 		// 近战攻击瞬间延长 haqi（覆盖攻击动画时长）
@@ -152,7 +172,11 @@ public final class MaodieLogic {
 		List<Player> players = cat.level().getEntitiesOfClass(
 			Player.class,
 			new AABB(cat.blockPosition()).inflate(TARGET_RANGE),
-			player -> player.isAlive() && !player.isCreative() && !player.isSpectator()
+			player -> player.isAlive()
+				&& !player.isCreative()
+				&& !player.isSpectator()
+				// 球形索敌：额外按三维距离过滤
+				&& cat.distanceToSqr(player) <= TARGET_RANGE_SQR
 		);
 		if (players.isEmpty()) {
 			return null;
@@ -169,6 +193,8 @@ public final class MaodieLogic {
 				&& !(entity instanceof ArmorStand)
 				&& !(entity instanceof Player)
 				&& !(entity instanceof Cat other && CatMatingLogic.isMaodie(other))
+				// 球形索敌：额外按三维距离过滤
+				&& cat.distanceToSqr(entity) <= TARGET_RANGE_SQR
 		);
 		if (entities.isEmpty()) {
 			return null;
@@ -252,6 +278,17 @@ public final class MaodieLogic {
 	 * 耄耋身后常驻的 #CCA675 粒子圆环：每 tick 在朝向反方向的竖直圆环上撒几颗色尘粒子。
 	 */
 	private static void spawnRingParticles(ServerLevel level, Cat cat) {
+		spawnRing(level, cat, RING_COLOR, RING_PARTICLES_PER_TICK, RING_RADIUS, RING_DISTANCE, RING_HEIGHT);
+	}
+
+	/**
+	 * 狂暴（血量 ≤{@link #RAGE_THRESHOLD}）时背后更大的红色粒子圆环。
+	 */
+	private static void spawnRageRingParticles(ServerLevel level, Cat cat) {
+		spawnRing(level, cat, RAGE_RING_COLOR, RAGE_RING_PARTICLES_PER_TICK, RAGE_RING_RADIUS, RAGE_RING_DISTANCE, RAGE_RING_HEIGHT);
+	}
+
+	private static void spawnRing(ServerLevel level, Cat cat, int color, int perTick, double radius, double distance, double height) {
 		Vec3 look = cat.getLookAngle();
 		double horizontal = Math.sqrt(look.x * look.x + look.z * look.z);
 		Vec3 behind;
@@ -263,13 +300,13 @@ public final class MaodieLogic {
 		Vec3 up = new Vec3(0.0, 1.0, 0.0);
 		Vec3 right = behind.cross(up);
 
-		Vec3 center = cat.position().add(behind.scale(RING_DISTANCE)).add(0.0, RING_HEIGHT, 0.0);
-		for (int i = 0; i < RING_PARTICLES_PER_TICK; i++) {
+		Vec3 center = cat.position().add(behind.scale(distance)).add(0.0, height, 0.0);
+		for (int i = 0; i < perTick; i++) {
 			double theta = cat.getRandom().nextDouble() * 2.0 * Math.PI;
-			double radius = RING_RADIUS * (0.85 + cat.getRandom().nextDouble() * 0.3);
-			Vec3 offset = right.scale(Math.cos(theta) * radius).add(up.scale(Math.sin(theta) * radius));
+			double r = radius * (0.85 + cat.getRandom().nextDouble() * 0.3);
+			Vec3 offset = right.scale(Math.cos(theta) * r).add(up.scale(Math.sin(theta) * r));
 			Vec3 pos = center.add(offset);
-			level.sendParticles(new DustParticleOptions(RING_COLOR, 1.0F), pos.x, pos.y, pos.z, 1, 0.0, 0.0, 0.0, 0.0);
+			level.sendParticles(new DustParticleOptions(color, 1.0F), pos.x, pos.y, pos.z, 1, 0.0, 0.0, 0.0, 0.0);
 		}
 	}
 
@@ -298,6 +335,15 @@ public final class MaodieLogic {
 			return false;
 		}
 
+		// 血量高于狂暴阈值时，每次攻击 20% 概率被替换为发射一个纸筒
+		if (cat.getHealth() > RAGE_THRESHOLD && cat.getRandom().nextFloat() < MELEE_ROLL_CHANCE) {
+			fireSinglePaperRoll(level, cat, target);
+			CatPartners.setAttackCooldown(cat, nextMeleeDelay(cat));
+			CatAudio.playHaSound(cat);
+			CatPartners.setMaodieAnimTick(cat, cat.tickCount);
+			return true;
+		}
+
 		float damage = MIN_ATTACK_DAMAGE + cat.getRandom().nextFloat() * (MAX_ATTACK_DAMAGE - MIN_ATTACK_DAMAGE);
 		target.hurtServer(level, cat.damageSources().mobAttack(cat), damage);
 		applyAttackEffects(cat, target);
@@ -321,7 +367,7 @@ public final class MaodieLogic {
 	}
 
 	/**
-	 * 狂暴模式：每 {@link #RAGE_FIRE_INTERVAL} tick 向目标发射一枚全速纸筒。
+	 * 狂暴模式：每 {@link #RAGE_FIRE_INTERVAL} tick 向目标呈扇形发射三枚全速纸筒。
 	 * 发射前 {@link #RAGE_WINDUP_TICKS} tick 起贴图切为 haqi。
 	 *
 	 * @return 是否处于蓄力/发射的 haqi 展示期间
@@ -339,16 +385,61 @@ public final class MaodieLogic {
 	}
 
 	private static void firePaperRoll(ServerLevel level, Cat cat, LivingEntity target) {
-		PaperRoll roll = new PaperRoll(ModEntityTypes.PAPER_ROLL, level);
 		Vec3 spawn = cat.getEyePosition();
-		roll.setPos(spawn.x, spawn.y, spawn.z);
-		roll.setOwner(cat);
 		Vec3 aim = target.getEyePosition().subtract(spawn).normalize();
-		roll.shoot(aim.x, aim.y, aim.z, ROLL_SPEED, 0.0F);
-		level.addFreshEntity(roll);
+
+		// 扇形三连发：左右各偏转 ±ROLL_FAN_SPREAD，中间直射目标
+		for (int i = 0; i < 3; i++) {
+			Vec3 dir = rotateAroundY(aim, (i - 1) * ROLL_FAN_SPREAD);
+			PaperRoll roll = new PaperRoll(ModEntityTypes.PAPER_ROLL, level);
+			roll.setPos(spawn.x, spawn.y, spawn.z);
+			roll.setOwner(cat);
+			roll.shoot(dir.x, dir.y, dir.z, ROLL_SPEED, 0.0F);
+			level.addFreshEntity(roll);
+		}
 		// 发射纸筒音效（ha 系列，带字幕）+ 攻击动画
 		CatAudio.playHaSound(cat);
 		CatPartners.setMaodieAnimTick(cat, cat.tickCount);
+	}
+
+	/**
+	 * 朝目标发射单个纸筒（近战被替换时使用）。
+	 */
+	private static void fireSinglePaperRoll(ServerLevel level, Cat cat, LivingEntity target) {
+		Vec3 spawn = cat.getEyePosition();
+		Vec3 aim = target.getEyePosition().subtract(spawn).normalize();
+		PaperRoll roll = new PaperRoll(ModEntityTypes.PAPER_ROLL, level);
+		roll.setPos(spawn.x, spawn.y, spawn.z);
+		roll.setOwner(cat);
+		roll.shoot(aim.x, aim.y, aim.z, ROLL_SPEED, 0.0F);
+		level.addFreshEntity(roll);
+	}
+
+	/**
+	 * 血量高于狂暴阈值时，每 {@link #NORMAL_FIRE_INTERVAL} tick 朝目标发射一个纸筒。
+	 *
+	 * @return 本 tick 是否发射（用于 haqi 延长）
+	 */
+	private static boolean normalFireTick(ServerLevel level, Cat cat, LivingEntity target) {
+		int cooldown = CatPartners.getMaodieNormalFireCooldown(cat);
+		if (cooldown <= 0) {
+			fireSinglePaperRoll(level, cat, target);
+			CatPartners.setMaodieNormalFireCooldown(cat, NORMAL_FIRE_INTERVAL);
+			CatAudio.playHaSound(cat);
+			CatPartners.setMaodieAnimTick(cat, cat.tickCount);
+			return true;
+		}
+		CatPartners.setMaodieNormalFireCooldown(cat, cooldown - 1);
+		return false;
+	}
+
+	/**
+	 * 将向量绕 Y 轴（竖直轴）旋转指定弧度，用于扇形偏转。
+	 */
+	private static Vec3 rotateAroundY(Vec3 v, float radians) {
+		double cos = Math.cos(radians);
+		double sin = Math.sin(radians);
+		return new Vec3(v.x * cos - v.z * sin, v.y, v.x * sin + v.z * cos);
 	}
 
 	private static int nextMeleeDelay(Cat cat) {

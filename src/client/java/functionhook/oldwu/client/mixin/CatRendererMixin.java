@@ -5,7 +5,6 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.CatRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.animal.feline.Cat;
-import net.minecraft.client.model.geom.ModelLayers;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -17,6 +16,7 @@ import functionhook.oldwu.Old_Wu_java;
 import functionhook.oldwu.cat.CatMatingLogic;
 import functionhook.oldwu.cat.CatPartners;
 import functionhook.oldwu.cat.CatState;
+import functionhook.oldwu.cat.MaodieLogic;
 import functionhook.oldwu.client.model.AngryCatBabyModel;
 import functionhook.oldwu.client.model.AngryCatModel;
 import functionhook.oldwu.client.model.BattleCatBabyModel;
@@ -70,8 +70,8 @@ import functionhook.oldwu.client.model.GroomingCatBabyModel;
 		this.oldwuRecoveryBabyModel = new RecoveryCatBabyModel(context.bakeLayer(RecoveryCatBabyModel.LAYER_LOCATION));
 		this.oldwuFlatModel = new FlatCatModel(context.bakeLayer(FlatCatModel.LAYER_LOCATION));
 		this.oldwuFlatBabyModel = new FlatCatBabyModel(context.bakeLayer(FlatCatBabyModel.LAYER_LOCATION));
-		this.oldwuGroomingModel = new GroomingCatModel(context.bakeLayer(ModelLayers.CAT));
-		this.oldwuGroomingBabyModel = new GroomingCatBabyModel(context.bakeLayer(ModelLayers.CAT_BABY));
+		this.oldwuGroomingModel = new GroomingCatModel(context.bakeLayer(GroomingCatModel.LAYER_LOCATION));
+		this.oldwuGroomingBabyModel = new GroomingCatBabyModel(context.bakeLayer(GroomingCatModel.LAYER_LOCATION));
 	}
 
 	@Inject(method = "extractRenderState", at = @At("TAIL"))
@@ -83,6 +83,8 @@ import functionhook.oldwu.client.model.GroomingCatBabyModel;
 		((CatStateCarrier) (Object) state).oldwu_setStateId(CatPartners.getState(entity).ordinal());
 		((CatStateCarrier) (Object) state).oldwu_setDanceModelIndex(CatPartners.getDanceModelIndex(entity));
 		((CatStateCarrier) (Object) state).oldwu_setMaodieAnimTick(CatPartners.getMaodieAnimTick(entity));
+		// 狂暴状态（血量 ≤ 阈值）：用于常态循环播放翻滚动画
+		((CatStateCarrier) (Object) state).oldwu_setMaodieRage(entity.getHealth() <= MaodieLogic.RAGE_THRESHOLD);
 		if (maodie) {
 			state.texture = haqi ? HAQI_TEXTURE : MAODIE_TEXTURE;
 		}

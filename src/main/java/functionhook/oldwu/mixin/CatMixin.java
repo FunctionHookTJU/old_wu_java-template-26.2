@@ -39,6 +39,7 @@ public abstract class CatMixin {
 		entityData.define(CatPartners.MAODIE_HAQI_TIMER, 0);
 		entityData.define(CatPartners.MAODIE_RAGE_COOLDOWN, 0);
 		entityData.define(CatPartners.MAODIE_ANIM_TICK, 0);
+		entityData.define(CatPartners.MAODIE_NORMAL_FIRE_COOLDOWN, 0);
 		entityData.define(CatPartners.GROOMING_TIMER, 0);
 		entityData.define(CatPartners.BATTLE_PEACE_TIMER, 0);
 	}

@@ -37,6 +37,7 @@ public class Old_Wu_javaClient implements ClientModInitializer {
 		ModelLayerRegistry.registerModelLayer(FlatCatModel.LAYER_LOCATION, FlatCatModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(FlatCatBabyModel.LAYER_LOCATION, FlatCatBabyModel::createBodyLayer);
 		ModelLayerRegistry.registerModelLayer(PaperRollModel.LAYER_LOCATION, PaperRollModel::createBodyLayer);
+		ModelLayerRegistry.registerModelLayer(GroomingCatModel.LAYER_LOCATION, GroomingCatModel::createBodyLayer);
 
 		EntityRendererRegistry.register(ModEntityTypes.PAPER_ROLL, PaperRollRenderer::new);
 

@@ -25,11 +25,13 @@ public class MaodieCatModel extends EntityModel<CatRenderState> {
 
 	private final ModelPart bone;
 	private final KeyframeAnimation attack;
+	private final KeyframeAnimation rolling;
 
 	public MaodieCatModel(ModelPart root) {
 		super(root);
 		this.bone = root.getChild("bone");
 		this.attack = MaodieAnimations.MAODIE_ATTACK.bake(root);
+		this.rolling = MaodieAnimations.ROLLING.bake(root);
 	}
 
 	public static LayerDefinition createBodyLayer() {
@@ -38,7 +40,7 @@ public class MaodieCatModel extends EntityModel<CatRenderState> {
 
 		PartDefinition bone = partdefinition.addOrReplaceChild(
 			"bone",
-			CubeListBuilder.create().texOffs(0, 25).addBox(-2.0F, -5.0F, 4.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)),
+			CubeListBuilder.create(),
 			PartPose.offsetAndRotation(0.0F, 24.0F, 0.0F, -3.1416F, 0.0F, 3.1416F)
 		);
 
@@ -46,6 +48,12 @@ public class MaodieCatModel extends EntityModel<CatRenderState> {
 			"body_r1",
 			CubeListBuilder.create().texOffs(16, 11).addBox(-3.0F, -10.0F, -1.0F, 4.0F, 10.0F, 4.0F, new CubeDeformation(0.0F)),
 			PartPose.offsetAndRotation(1.0F, -1.0F, -4.0F, -0.4363F, 0.0F, 0.0F)
+		);
+
+		bone.addOrReplaceChild(
+			"bone2",
+			CubeListBuilder.create().texOffs(0, 25).addBox(-1.0F, -5.0F, -1.0F, 2.0F, 5.0F, 2.0F, new CubeDeformation(0.0F)),
+			PartPose.offset(-1.0F, 0.0F, 5.0F)
 		);
 
 		PartDefinition leg_L = bone.addOrReplaceChild(
@@ -125,6 +133,13 @@ public class MaodieCatModel extends EntityModel<CatRenderState> {
 		super.setupAnim(state);
 
 		if (state instanceof CatStateCarrier carrier) {
+			// 狂暴（血量 ≤ 阈值）时常态循环播放翻滚动画（作用于 bone2，与攻击的 handR 不冲突）
+			if (carrier.oldwu_isMaodieRage()) {
+				long loopMs = (long) (state.ageInTicks * 50.0F);
+				this.rolling.apply(loopMs, 1.0F);
+			}
+
+			// 近战攻击/发射纸筒的挥击动画，可与翻滚动画同时播放
 			int animTick = carrier.oldwu_getMaodieAnimTick();
 			if (animTick > 0) {
 				long elapsedMs = (long) ((state.ageInTicks - animTick) * 50.0F);

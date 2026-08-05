@@ -20,4 +20,8 @@ public interface CatStateCarrier {
 	int oldwu_getMaodieAnimTick();
 
 	void oldwu_setMaodieAnimTick(int tick);
+
+	boolean oldwu_isMaodieRage();
+
+	void oldwu_setMaodieRage(boolean rage);
 }

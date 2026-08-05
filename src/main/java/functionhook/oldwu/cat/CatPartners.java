@@ -20,6 +20,7 @@ public final class CatPartners {
 	public static final EntityDataAccessor<Integer> MAODIE_HAQI_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> MAODIE_RAGE_COOLDOWN = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> MAODIE_ANIM_TICK = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	public static final EntityDataAccessor<Integer> MAODIE_NORMAL_FIRE_COOLDOWN = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> GROOMING_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> BATTLE_PEACE_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	private CatPartners() {
@@ -74,6 +75,14 @@ public final class CatPartners {
 
 	public static void setMaodieAnimTick(Cat cat, int value) {
 		cat.getEntityData().set(MAODIE_ANIM_TICK, value);
+	}
+
+	public static int getMaodieNormalFireCooldown(Cat cat) {
+		return cat.getEntityData().get(MAODIE_NORMAL_FIRE_COOLDOWN);
+	}
+
+	public static void setMaodieNormalFireCooldown(Cat cat, int value) {
+		cat.getEntityData().set(MAODIE_NORMAL_FIRE_COOLDOWN, value);
 	}
 
 	public static int getPairingTimer(Cat cat) {
