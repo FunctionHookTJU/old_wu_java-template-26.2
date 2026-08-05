@@ -1,0 +1,15 @@
+{
+  "parent": "minecraft:adventure/root",
+  "display": {
+    "icon": { "id": "minecraft:spyglass" },
+    "title": { "translate": "advancements.old_wu_java.spot_check_camera.title" },
+    "description": { "translate": "advancements.old_wu_java.spot_check_camera.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": true
+  },
+  "criteria": {
+    "observe_maodie": { "trigger": "minecraft:impossible" }
+  }
+}

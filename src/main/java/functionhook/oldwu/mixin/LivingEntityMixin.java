@@ -2,6 +2,7 @@ package functionhook.oldwu.mixin;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.feline.Cat;
@@ -14,6 +15,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 
+import functionhook.oldwu.advancement.MaodieAdvancements;
 import functionhook.oldwu.cat.CatMatingLogic;
 import functionhook.oldwu.cat.MaodieLogic;
 import functionhook.oldwu.item.ModItems;
@@ -33,6 +35,11 @@ public abstract class LivingEntityMixin {
 
 		// 移除耄耋的 Boss 血条
 		MaodieLogic.removeBossBar(cat);
+
+		// 击杀耄耋的玩家获得进度
+		if (source.getEntity() instanceof ServerPlayer player) {
+			MaodieAdvancements.awardDefeatMaodie(player);
+		}
 
 		if (!(cat.level() instanceof ServerLevel serverLevel)) {
 			return;

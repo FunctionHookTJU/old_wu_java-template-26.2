@@ -4,5 +4,9 @@
 	"itemGroup.old_wu_java.old_wu": "老吴",
 	"subtitle.old_wu_java.ha": "哈气",
 	"subtitle.old_wu_java.laowu": "老吴",
-	"subtitle.old_wu_java.recovery": "嚼口香糖"
+	"subtitle.old_wu_java.recovery": "嚼口香糖",
+	"advancements.old_wu_java.spot_check_camera.title": "抽查运镜",
+	"advancements.old_wu_java.spot_check_camera.description": "连续两次使用望远镜观察耄耋",
+	"advancements.old_wu_java.old_friend_gone.title": "昔人已乘黄鹤去",
+	"advancements.old_wu_java.old_friend_gone.description": "击杀耄耋"
 }
