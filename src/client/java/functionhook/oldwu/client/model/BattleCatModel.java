@@ -26,13 +26,11 @@ public class BattleCatModel extends EntityModel<CatRenderState> {
 
 	private final KeyframeAnimation battle;
 	private final KeyframeAnimation spin;
-	private final KeyframeAnimation grooming;
 
 	public BattleCatModel(ModelPart root) {
 		super(root);
 		this.battle = CatAnimations.BATTLE.bake(root);
 		this.spin = CatAnimations.SPIN.bake(root);
-		this.grooming = CatAnimations.GROOMING.bake(root);
 	}
 
 	public static LayerDefinition createBodyLayer() {
@@ -121,8 +119,6 @@ public class BattleCatModel extends EntityModel<CatRenderState> {
 				this.battle.apply(time, 1.0F);
 			} else if (stateId == CatState.DANCE.ordinal()) {
 				this.spin.apply(time, 1.0F);
-			} else if (stateId == CatState.GROOMING.ordinal()) {
-				this.grooming.apply(time, 1.0F);
 			}
 		}
 	}

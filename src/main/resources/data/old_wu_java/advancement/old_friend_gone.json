@@ -1,0 +1,15 @@
+{
+  "parent": "minecraft:adventure/root",
+  "display": {
+    "icon": { "id": "old_wu_java:paper_roll" },
+    "title": { "translate": "advancements.old_wu_java.old_friend_gone.title" },
+    "description": { "translate": "advancements.old_wu_java.old_friend_gone.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "defeat_maodie": { "trigger": "minecraft:impossible" }
+  }
+}

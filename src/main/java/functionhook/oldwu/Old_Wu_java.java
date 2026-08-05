@@ -14,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import functionhook.oldwu.cat.CatMatingLogic;
+import functionhook.oldwu.advancement.MaodieObservationTracker;
 import functionhook.oldwu.entity.ModEntityTypes;
 import functionhook.oldwu.item.ModItems;
 import functionhook.oldwu.particle.ModParticles;
@@ -37,6 +38,7 @@ public class Old_Wu_java implements ModInitializer {
 		ModSounds.initialize();
 		ModEntityTypes.init();
 		ModItems.initialize();
+		MaodieObservationTracker.initialize();
 		registerShovelInteract();
 		LOGGER.info("Hello Fabric world!");
 	}

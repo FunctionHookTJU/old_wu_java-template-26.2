@@ -16,7 +16,6 @@ import functionhook.oldwu.Old_Wu_java;
 import functionhook.oldwu.cat.CatMatingLogic;
 import functionhook.oldwu.cat.CatPartners;
 import functionhook.oldwu.cat.CatState;
-import functionhook.oldwu.cat.MaodieLogic;
 import functionhook.oldwu.client.model.AngryCatBabyModel;
 import functionhook.oldwu.client.model.AngryCatModel;
 import functionhook.oldwu.client.model.BattleCatBabyModel;
@@ -28,8 +27,6 @@ import functionhook.oldwu.client.model.RecoveryCatBabyModel;
 import functionhook.oldwu.client.model.RecoveryCatModel;
 import functionhook.oldwu.client.render.CatStateCarrier;
 import functionhook.oldwu.client.render.CatStateModelHolder;
-import functionhook.oldwu.client.model.GroomingCatModel;
-import functionhook.oldwu.client.model.GroomingCatBabyModel;
 
 @Mixin(CatRenderer.class)
 	public abstract class CatRendererMixin implements CatStateModelHolder {
@@ -54,10 +51,6 @@ import functionhook.oldwu.client.model.GroomingCatBabyModel;
 	private FlatCatModel oldwuFlatModel;
 	@Unique
 	private FlatCatBabyModel oldwuFlatBabyModel;
-	@Unique
-	private GroomingCatModel oldwuGroomingModel;
-	@Unique
-	private GroomingCatBabyModel oldwuGroomingBabyModel;
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void oldwu_bakeModels(EntityRendererProvider.Context context, CallbackInfo ci) {
@@ -70,8 +63,6 @@ import functionhook.oldwu.client.model.GroomingCatBabyModel;
 		this.oldwuRecoveryBabyModel = new RecoveryCatBabyModel(context.bakeLayer(RecoveryCatBabyModel.LAYER_LOCATION));
 		this.oldwuFlatModel = new FlatCatModel(context.bakeLayer(FlatCatModel.LAYER_LOCATION));
 		this.oldwuFlatBabyModel = new FlatCatBabyModel(context.bakeLayer(FlatCatBabyModel.LAYER_LOCATION));
-		this.oldwuGroomingModel = new GroomingCatModel(context.bakeLayer(GroomingCatModel.LAYER_LOCATION));
-		this.oldwuGroomingBabyModel = new GroomingCatBabyModel(context.bakeLayer(GroomingCatModel.LAYER_LOCATION));
 	}
 
 	@Inject(method = "extractRenderState", at = @At("TAIL"))
@@ -83,8 +74,6 @@ import functionhook.oldwu.client.model.GroomingCatBabyModel;
 		((CatStateCarrier) (Object) state).oldwu_setStateId(CatPartners.getState(entity).ordinal());
 		((CatStateCarrier) (Object) state).oldwu_setDanceModelIndex(CatPartners.getDanceModelIndex(entity));
 		((CatStateCarrier) (Object) state).oldwu_setMaodieAnimTick(CatPartners.getMaodieAnimTick(entity));
-		// 狂暴状态（血量 ≤ 阈值）：用于常态循环播放翻滚动画
-		((CatStateCarrier) (Object) state).oldwu_setMaodieRage(entity.getHealth() <= MaodieLogic.RAGE_THRESHOLD);
 		if (maodie) {
 			state.texture = haqi ? HAQI_TEXTURE : MAODIE_TEXTURE;
 		}
@@ -137,15 +126,5 @@ import functionhook.oldwu.client.model.GroomingCatBabyModel;
 	@Override
 	public FlatCatBabyModel oldwu_getFlatBabyModel() {
 		return this.oldwuFlatBabyModel;
-	}
-
-	@Override
-	public GroomingCatModel oldwu_getGroomingModel() {
-		return this.oldwuGroomingModel;
-	}
-
-	@Override
-	public GroomingCatBabyModel oldwu_getGroomingBabyModel() {
-		return this.oldwuGroomingBabyModel;
 	}
 }

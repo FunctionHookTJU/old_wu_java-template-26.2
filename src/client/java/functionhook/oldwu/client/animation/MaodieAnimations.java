@@ -27,31 +27,6 @@ public final class MaodieAnimations {
 			new Keyframe(0.5F, KeyframeAnimations.posVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR)))
 		.build();
 
-	/**
-	 * 狂暴（血量 ≤ RAGE_THRESHOLD）时常态循环播放的翻滚动画。
-	 * 原 maodie.rolling.json 只有单帧静态偏移，无法产生运动；改写为让 bone2
-	 * 围绕身体（bone 原点）在 XZ 平面公转，同时自身绕 Y 轴自转。
-	 * 仅作用于 bone2，与攻击动画的 handR 互不干扰，可同时播放。
-	 */
-	public static final AnimationDefinition ROLLING = AnimationDefinition.Builder.withLength(4.0F).looping()
-		.addAnimation("bone2", new AnimationChannel(AnimationChannel.Targets.ROTATION,
-			new Keyframe(0.0F, KeyframeAnimations.degreeVec(0.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
-			new Keyframe(1.0F, KeyframeAnimations.degreeVec(0.0F, 90.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
-			new Keyframe(2.0F, KeyframeAnimations.degreeVec(0.0F, 180.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
-			new Keyframe(3.0F, KeyframeAnimations.degreeVec(0.0F, 270.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
-			new Keyframe(4.0F, KeyframeAnimations.degreeVec(0.0F, 360.0F, 0.0F), AnimationChannel.Interpolations.LINEAR)))
-		.addAnimation("bone2", new AnimationChannel(AnimationChannel.Targets.POSITION,
-			new Keyframe(0.0F, KeyframeAnimations.posVec(19.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(0.5F, KeyframeAnimations.posVec(13.4F, 0.0F, 13.4F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.0F, KeyframeAnimations.posVec(0.0F, 0.0F, 19.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(1.5F, KeyframeAnimations.posVec(-13.4F, 0.0F, 13.4F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(2.0F, KeyframeAnimations.posVec(-19.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(2.5F, KeyframeAnimations.posVec(-13.4F, 0.0F, -13.4F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.0F, KeyframeAnimations.posVec(0.0F, 0.0F, -19.0F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(3.5F, KeyframeAnimations.posVec(13.4F, 0.0F, -13.4F), AnimationChannel.Interpolations.CATMULLROM),
-			new Keyframe(4.0F, KeyframeAnimations.posVec(19.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.CATMULLROM)))
-		.build();
-
 	private MaodieAnimations() {
 	}
 }

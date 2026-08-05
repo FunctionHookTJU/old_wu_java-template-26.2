@@ -7,8 +7,7 @@ public enum CatState {
 	BATTLE,
 	RECOVERY,
 	FLAT,
-	DANCE,
-	GROOMING;
+	DANCE;
 
 	private static final CatState[] VALUES = values();
 

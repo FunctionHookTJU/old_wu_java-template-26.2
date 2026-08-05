@@ -12,7 +12,6 @@ import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
-import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.animal.feline.Cat;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
@@ -21,7 +20,6 @@ import net.minecraft.world.phys.Vec3;
 
 import functionhook.oldwu.audio.CatAudio;
 import functionhook.oldwu.particle.ModParticles;
-import net.minecraft.core.particles.ParticleTypes;
 
 public final class CatMatingLogic {
 	private static final double ATTRACT_RANGE = 16.0;//两只猫互相攻击的检测范围
@@ -58,14 +56,6 @@ public final class CatMatingLogic {
 	}
 
 	public static void tick(ServerLevel level, Cat cat) {
-		int peaceTimer = CatPartners.getBattlePeaceTimer(cat);
-		if (peaceTimer > 0) {
-			CatPartners.setBattlePeaceTimer(cat, peaceTimer - 1);
-			if (peaceTimer % 5 == 0) {
-				spawnWetParticles(level, cat);
-			}
-		}
-
 		if (!isMaodie(cat)) {
 			// 不再是被命名为 "maodie" 的猫时，清理残留的 Boss 血条
 			MaodieLogic.removeBossBar(cat);
@@ -96,37 +86,7 @@ public final class CatMatingLogic {
 			return;
 		}
 
-		if (CatPartners.getState(cat) == CatState.GROOMING) {
-			groomingTick(level, cat);
-			return;
-		}
-
-		// 无法进入生气或配对模式，这段是对应代码
-		if (CatPartners.getBattlePeaceTimer(cat) > 0) {
-			CatPartners.getPartner(cat).ifPresent(partnerId -> {
-				if (cat.level().getEntity(partnerId) instanceof Cat other) {
-					CatPartners.setPartner(other, null);
-
-					if (CatPartners.getState(other) == CatState.ANGRY
-							|| CatPartners.getState(other) == CatState.PAIRING
-							|| CatPartners.getState(other) == CatState.BATTLE) {
-						transitionTo(other, CatState.COMMON);
-					}
-				}
-			});
-
-			CatPartners.setPartner(cat, null);
-
-			if (CatPartners.getState(cat) == CatState.ANGRY
-					|| CatPartners.getState(cat) == CatState.PAIRING
-					|| CatPartners.getState(cat) == CatState.BATTLE) {
-				transitionTo(cat, CatState.COMMON);
-			}
-
-			return;
-		}
-
-		// dance/flat 可打断任意状态：0.5 格内被马/驴/骡/猪/骆驼冲撞
+		// dance/flat 可打断任意状态：0.5 格内被马/驴/骡/猪冲撞
 		if (tryDanceOrFlat(cat)) {
 			return;
 		}
@@ -172,7 +132,7 @@ public final class CatMatingLogic {
 	}
 
 	/**
-	 * 被马/驴/骡/猪/骆驼（无论是否被骑乘）冲撞或经过时，猫 50% 概率进入 dance、50% 概率进入 flat。
+	 * 被马/驴/骡/猪（无论是否被骑乘）冲撞或经过时，猫 50% 概率进入 dance、50% 概率进入 flat。
 	 */
 	private static boolean tryDanceOrFlat(Cat cat) {
 		if (findNearbyMount(cat) == null) {
@@ -192,10 +152,6 @@ public final class CatMatingLogic {
 		List<AbstractHorse> horses = cat.level().getEntitiesOfClass(AbstractHorse.class, range, horse -> !horse.isRemoved());
 		if (!horses.isEmpty()) {
 			return horses.get(0);
-		}
-		List<Camel> camels = cat.level().getEntitiesOfClass(Camel.class, range, camel -> !camel.isRemoved());
-		if (!camels.isEmpty()) {
-			return camels.get(0);
 		}
 		List<Pig> pigs = cat.level().getEntitiesOfClass(Pig.class, range, pig -> !pig.isRemoved());
 		return pigs.isEmpty() ? null : pigs.get(0);
@@ -389,14 +345,7 @@ public final class CatMatingLogic {
 		if (!(partner instanceof Cat other)) {
 			return;
 		}
-		if (CatPartners.getBattlePeaceTimer(cat) > 0
-				|| CatPartners.getBattlePeaceTimer(other) > 0) {
-			CatPartners.setPartner(cat, null);
-			CatPartners.setPartner(other, null);
-			transitionTo(cat, CatState.COMMON);
-			transitionTo(other, CatState.COMMON);
-			return;
-		}
+
 		transitionTo(cat, CatState.BATTLE);
 		transitionTo(other, CatState.BATTLE);
 		CatPartners.setAttackCooldown(cat, nextAttackDelay(cat));
@@ -429,9 +378,8 @@ public final class CatMatingLogic {
 		int cooldown = CatPartners.getAttackCooldown(cat);
 		if (cooldown > 0) {
 			CatPartners.setAttackCooldown(cat, cooldown - 1);
-		} else if (distanceSqr <= STOP_DISTANCE_SQR) {
-			// 仅在贴近范围内攻击，避免无视距离出手；
-			// 使用 generic（带 NO_KNOCKBACK 标签）伤害来源，击退为 0，避免缠斗被弹开。
+		} else {
+			// 互相攻击，但使用 generic（带 NO_KNOCKBACK 标签）伤害来源，击退为 0，避免缠斗被弹开。
 			partner.hurtServer(level, cat.damageSources().generic(), ATTACK_DAMAGE);
 			CatAudio.playStateSound(cat, CatState.BATTLE);
 			CatPartners.setAttackCooldown(cat, nextAttackDelay(cat));
@@ -592,30 +540,5 @@ public final class CatMatingLogic {
 			return true;
 		}
 		return false;
-	}
-
-	private static void groomingTick(ServerLevel level, Cat cat){
-		cat.getNavigation().stop();
-
-		int timer = CatPartners.getGroomingTimer(cat);
-		if (timer > 0){
-			CatPartners.setGroomingTimer(cat, timer - 1);
-		} else {
-			transitionTo(cat, CatState.COMMON);
-		}
-	}
-
-	private static void spawnWetParticles(ServerLevel level, Cat cat) {
-		level.sendParticles(
-			ParticleTypes.FALLING_WATER,
-			cat.getX(),
-			cat.getY() + cat.getBbHeight() * 0.75,
-			cat.getZ(),
-			10,
-			cat.getBbWidth() * 0.4,
-			cat.getBbHeight() * 0.25,
-			cat.getBbWidth() * 0.4,
-			0.02
-		);
 	}
 }
