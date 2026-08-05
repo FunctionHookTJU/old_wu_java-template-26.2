@@ -429,8 +429,9 @@ public final class CatMatingLogic {
 		int cooldown = CatPartners.getAttackCooldown(cat);
 		if (cooldown > 0) {
 			CatPartners.setAttackCooldown(cat, cooldown - 1);
-		} else {
-			// 互相攻击，但使用 generic（带 NO_KNOCKBACK 标签）伤害来源，击退为 0，避免缠斗被弹开。
+		} else if (distanceSqr <= STOP_DISTANCE_SQR) {
+			// 仅在贴近范围内攻击，避免无视距离出手；
+			// 使用 generic（带 NO_KNOCKBACK 标签）伤害来源，击退为 0，避免缠斗被弹开。
 			partner.hurtServer(level, cat.damageSources().generic(), ATTACK_DAMAGE);
 			CatAudio.playStateSound(cat, CatState.BATTLE);
 			CatPartners.setAttackCooldown(cat, nextAttackDelay(cat));
