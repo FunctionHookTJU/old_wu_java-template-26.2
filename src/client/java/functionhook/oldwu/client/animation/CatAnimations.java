@@ -70,6 +70,14 @@ public final class CatAnimations {
 			new Keyframe(0.75F, KeyframeAnimations.degreeVec(270.0F, -270.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
 			new Keyframe(1.0F, KeyframeAnimations.degreeVec(360.0F, -360.0F, 0.0F), AnimationChannel.Interpolations.LINEAR)))
 		.build();
+	// 添加舔毛动画
+	public static final AnimationDefinition GROOMING = AnimationDefinition.Builder.withLength(0.8F).looping()
+		.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.ROTATION,
+			new Keyframe(0.0f, KeyframeAnimations.degreeVec(25.0f, -30.0f, -45.0f), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(0.25f, KeyframeAnimations.degreeVec(60.0f, -30.0f, -45.0f), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(0.5f, KeyframeAnimations.degreeVec(25.0f, -30.0f, -45.0f), AnimationChannel.Interpolations.LINEAR),
+			new Keyframe(0.8f, KeyframeAnimations.degreeVec(25.0f, -30.0f, -45.0f), AnimationChannel.Interpolations.LINEAR)))
+		.build();
 
 	/**
 	 * 幼年模型的旋转动画（spin_baby 导出）：body 360° 翻转旋转。
@@ -113,6 +121,15 @@ public final class CatAnimations {
 			new Keyframe(0.25F, KeyframeAnimations.degreeVec(10.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR),
 			new Keyframe(0.5F, KeyframeAnimations.degreeVec(-20.0F, 0.0F, 0.0F), AnimationChannel.Interpolations.LINEAR)))
 		.build();
+	// 添加小鼻嘎舔毛动画
+	public static final AnimationDefinition GROOMING_BABY = AnimationDefinition.Builder.withLength(0.8F).looping()
+			.addAnimation("head", new AnimationChannel(AnimationChannel.Targets.ROTATION,
+					new Keyframe(0.0f, KeyframeAnimations.degreeVec(35.0f, -20.0f, -45.0f), AnimationChannel.Interpolations.LINEAR),
+					new Keyframe(0.25f, KeyframeAnimations.degreeVec(50.0f, -20.0f, -45.0f), AnimationChannel.Interpolations.LINEAR),
+					new Keyframe(0.5f, KeyframeAnimations.degreeVec(35.0f, -20.0f, -45.0f), AnimationChannel.Interpolations.LINEAR),
+					new Keyframe(0.8f, KeyframeAnimations.degreeVec(35.0f, -20.0f, -45.0f), AnimationChannel.Interpolations.LINEAR)))
+			.build();
+
 
 	private CatAnimations() {
 	}

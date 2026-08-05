@@ -5,6 +5,7 @@ import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.CatRenderState;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.animal.feline.Cat;
+import net.minecraft.client.model.geom.ModelLayers;
 
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
@@ -27,6 +28,8 @@ import functionhook.oldwu.client.model.RecoveryCatBabyModel;
 import functionhook.oldwu.client.model.RecoveryCatModel;
 import functionhook.oldwu.client.render.CatStateCarrier;
 import functionhook.oldwu.client.render.CatStateModelHolder;
+import functionhook.oldwu.client.model.GroomingCatModel;
+import functionhook.oldwu.client.model.GroomingCatBabyModel;
 
 @Mixin(CatRenderer.class)
 	public abstract class CatRendererMixin implements CatStateModelHolder {
@@ -51,6 +54,10 @@ import functionhook.oldwu.client.render.CatStateModelHolder;
 	private FlatCatModel oldwuFlatModel;
 	@Unique
 	private FlatCatBabyModel oldwuFlatBabyModel;
+	@Unique
+	private GroomingCatModel oldwuGroomingModel;
+	@Unique
+	private GroomingCatBabyModel oldwuGroomingBabyModel;
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void oldwu_bakeModels(EntityRendererProvider.Context context, CallbackInfo ci) {
@@ -63,6 +70,8 @@ import functionhook.oldwu.client.render.CatStateModelHolder;
 		this.oldwuRecoveryBabyModel = new RecoveryCatBabyModel(context.bakeLayer(RecoveryCatBabyModel.LAYER_LOCATION));
 		this.oldwuFlatModel = new FlatCatModel(context.bakeLayer(FlatCatModel.LAYER_LOCATION));
 		this.oldwuFlatBabyModel = new FlatCatBabyModel(context.bakeLayer(FlatCatBabyModel.LAYER_LOCATION));
+		this.oldwuGroomingModel = new GroomingCatModel(context.bakeLayer(ModelLayers.CAT));
+		this.oldwuGroomingBabyModel = new GroomingCatBabyModel(context.bakeLayer(ModelLayers.CAT_BABY));
 	}
 
 	@Inject(method = "extractRenderState", at = @At("TAIL"))
@@ -126,5 +135,15 @@ import functionhook.oldwu.client.render.CatStateModelHolder;
 	@Override
 	public FlatCatBabyModel oldwu_getFlatBabyModel() {
 		return this.oldwuFlatBabyModel;
+	}
+
+	@Override
+	public GroomingCatModel oldwu_getGroomingModel() {
+		return this.oldwuGroomingModel;
+	}
+
+	@Override
+	public GroomingCatBabyModel oldwu_getGroomingBabyModel() {
+		return this.oldwuGroomingBabyModel;
 	}
 }
