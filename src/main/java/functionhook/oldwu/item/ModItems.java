@@ -16,8 +16,10 @@ import functionhook.oldwu.Old_Wu_java;
 
 public final class ModItems {
 	public static final ResourceKey<Item> PAPER_ROLL_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("paper_roll"));
+	public static final ResourceKey<Item> DAGOUJIAO_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("dagoujiao"));
 
 	public static final Item PAPER_ROLL = register(PAPER_ROLL_KEY, PaperRollItem::new, new Item.Properties().stacksTo(67));
+	public static final Item DAGOUJIAO = register(DAGOUJIAO_KEY, Item::new, new Item.Properties().stacksTo(64));
 
 	// 模组专属创造模式标签页
 	public static final ResourceKey<CreativeModeTab> MOD_TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Old_Wu_java.id("old_wu"));
@@ -28,7 +30,10 @@ public final class ModItems {
 		FabricCreativeModeTab.builder()
 			.title(Component.translatable("itemGroup.old_wu_java.old_wu"))
 			.icon(() -> new ItemStack(PAPER_ROLL))
-			.displayItems((parameters, output) -> output.accept(PAPER_ROLL))
+			.displayItems((parameters, output) -> {
+				output.accept(PAPER_ROLL);
+				output.accept(DAGOUJIAO);
+			})
 			.build()
 	);
 

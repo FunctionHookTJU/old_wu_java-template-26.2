@@ -1,0 +1,14 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "s": "minecraft:string",
+    "c": "#minecraft:wool_carpets"
+  },
+  "pattern": [
+    "scs"
+  ],
+  "result": {
+    "id": "old_wu_java:dagoujiao"
+  }
+}

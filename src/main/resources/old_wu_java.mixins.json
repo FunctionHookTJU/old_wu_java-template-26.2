@@ -6,7 +6,8 @@
 		"AbstractThrownPotionMixin",
 		"CatMixin",
 		"LivingEntityMixin",
-		"MobMixin"
+		"MobMixin",
+		"WolfMixin"
 	],
 	"injectors": {
 		"defaultRequire": 1

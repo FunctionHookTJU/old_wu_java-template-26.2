@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "old_wu_java:item/dagoujiao"
+  }
+}
