@@ -33,7 +33,7 @@ import functionhook.oldwu.entity.PaperRoll;
  * 被命名为 "maodie" 的猫的特殊行为逻辑：
  * <ul>
  *   <li>血量上限 325；使用原版 {@code generic.scale} 属性放大 1.5 倍（模型+碰撞箱）</li>
- *   <li>主动攻击玩家（优先）；无玩家在范围内时无差别攻击周围所有生物</li>
+ *   <li>主动攻击玩家（优先）；无玩家可见时攻击可见的周围生物（**需视线可见，非无条件索敌**）</li>
  *   <li>没有任何攻击目标时随机游荡</li>
  *   <li>攻击/发射纸筒时贴图切换为 haqi，并播放 ha 系列音效</li>
  *   <li>攻击伤害 5~20 随机；0.2 概率中毒 II 5 秒、0.1 概率中毒 II + 凋零 II 8 秒；攻击时产生两个爆炸粒子</li>
@@ -158,7 +158,8 @@ public final class MaodieLogic {
 	}
 
 	/**
-	 * 目标选择：优先最近的玩家；无玩家时无差别攻击范围内的所有生物。
+	 * 目标选择：优先最近且**视线可见**的玩家；无可见玩家时选择最近且**视线可见**的生物。
+	 * 耄耋只有"看到"可攻击实体才会发起攻击，不再无条件索敌。
 	 */
 	private static LivingEntity findTarget(Cat cat) {
 		Player player = findNearestPlayer(cat);
@@ -175,6 +176,8 @@ public final class MaodieLogic {
 			player -> player.isAlive()
 				&& !player.isCreative()
 				&& !player.isSpectator()
+				// 仅索敌视线可见的实体
+				&& cat.hasLineOfSight(player)
 				// 球形索敌：额外按三维距离过滤
 				&& cat.distanceToSqr(player) <= TARGET_RANGE_SQR
 		);
@@ -193,6 +196,8 @@ public final class MaodieLogic {
 				&& !(entity instanceof ArmorStand)
 				&& !(entity instanceof Player)
 				&& !(entity instanceof Cat other && CatMatingLogic.isMaodie(other))
+				// 仅索敌视线可见的实体
+				&& cat.hasLineOfSight(entity)
 				// 球形索敌：额外按三维距离过滤
 				&& cat.distanceToSqr(entity) <= TARGET_RANGE_SQR
 		);
