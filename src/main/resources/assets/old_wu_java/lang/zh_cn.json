@@ -1,11 +1,13 @@
 {
 	"entity.old_wu_java.maodie": "耄耋",
+	"attribute.old_wu_java.extra_max_health": "额外最大生命值",
 	"item.old_wu_java.paper_roll": "纸卷",
 	"item.old_wu_java.dagoujiao": "大狗叫",
 	"itemGroup.old_wu_java.old_wu": "老吴",
 	"subtitle.old_wu_java.ha": "哈气",
 	"subtitle.old_wu_java.laowu": "老吴",
 	"subtitle.old_wu_java.recovery": "嚼口香糖",
+	"subtitle.old_wu_java.dagou": "大狗",
 	"advancements.old_wu_java.spot_check_camera.title": "抽查运镜",
 	"advancements.old_wu_java.spot_check_camera.description": "连续两次使用望远镜观察耄耋",
 	"advancements.old_wu_java.old_friend_gone.title": "昔人已乘黄鹤去",

@@ -5,7 +5,10 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.EntityRendererRegistry;
 import net.fabricmc.fabric.api.client.rendering.v1.ModelLayerRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.VanillaHudElements;
 
+import functionhook.oldwu.Old_Wu_java;
 import functionhook.oldwu.client.model.AngryCatBabyModel;
 import functionhook.oldwu.client.model.AngryCatModel;
 import functionhook.oldwu.client.model.BattleCatBabyModel;
@@ -19,6 +22,7 @@ import functionhook.oldwu.client.model.RecoveryCatModel;
 import functionhook.oldwu.client.particle.MaomaoParticle;
 import functionhook.oldwu.client.particle.RecoveryParticle;
 import functionhook.oldwu.client.render.PaperRollRenderer;
+import functionhook.oldwu.client.render.WolfFeedHud;
 import functionhook.oldwu.entity.ModEntityTypes;
 import functionhook.oldwu.particle.ModParticles;
 import functionhook.oldwu.client.model.GroomingCatModel;
@@ -43,5 +47,7 @@ public class Old_Wu_javaClient implements ClientModInitializer {
 
 		ParticleProviderRegistry.getInstance().register(ModParticles.RECOVERY, RecoveryParticle.Provider::new);
 		ParticleProviderRegistry.getInstance().register(ModParticles.MAOMAO, MaomaoParticle.Provider::new);
+
+		HudElementRegistry.attachElementBefore(VanillaHudElements.CHAT, Old_Wu_java.id("wolf_feed_progress"), WolfFeedHud::extract);
 	}
 }

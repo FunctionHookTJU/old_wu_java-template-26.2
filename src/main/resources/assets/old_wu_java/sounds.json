@@ -172,5 +172,77 @@
     "sounds": [
       "old_wu_java:recovery_2"
     ]
+  },
+  "dagou_1": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dagou_1"
+    ]
+  },
+  "dagou_2": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dagou_2"
+    ]
+  },
+  "dagou_3": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dagou_3"
+    ]
+  },
+  "dagou_4": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dagou_4"
+    ]
+  },
+  "dagou_5": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dagou_5"
+    ]
+  },
+  "dagou_6": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dagou_6"
+    ]
+  },
+  "dagou_7": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dagou_7"
+    ]
+  },
+  "dagou_8": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dagou_8"
+    ]
+  },
+  "dagou_9": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dagou_9"
+    ]
+  },
+  "dagou_10": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dagou_10"
+    ]
+  },
+  "dagou_11_re": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dagou_11_re"
+    ]
+  },
+  "dog_launch": {
+    "subtitle": "subtitle.old_wu_java.dagou",
+    "sounds": [
+      "old_wu_java:dog_launch"
+    ]
   }
 }

@@ -35,13 +35,20 @@
 - 所有模型（common、angry、battle、recovery、flat、grooming）必须准备成年/幼年各一套。
 - 音频按状态触发，不可重叠。
 - 街舞（dance）与理毛（grooming）是最高优先级打断状态，进入时会立即清除配对。
+- **驯服的猫互相之间不会主动进入配对/战斗**（`findCandidate` 对驯服猫直接返回空）；只有**未驯服的猫**会挑衅发起配对战斗（未驯服猫可将驯服猫或其它未驯服猫作为目标）。驯服猫仍会正常索敌耄耋（maodie）。
 
 ## 新增物品：大狗叫（dagoujiao）
 
 - 工作台合成配方：中间一行 `[线][任意颜色羊毛地毯][线]`，消耗 **2 根线 + 1 块羊毛地毯**，产出 1 个大狗叫。
 - 大狗叫只能对**已驯服**的狼使用（右键喂食），效果只在服务端执行，客户端仅返回成功触发挥臂与交互音效。
+- **只能喂食属于自己的狼**：非主人的玩家对别人的狼使用大狗叫时，交互直接放行（不消耗、无效果、不挥臂）；进度条 HUD 同样只对狼主人显示。
 - **血量不满时**：每次喂食回复 **10 点生命**并消耗 1 个大狗叫。
 - **满血时**：每次喂食按喂食次数 1、2、3... 递增提升血量上限（第 n 次喂食 +n，最多 64 次），并回复等量生命；喂食次数通过物品数据组件 `oldwu_dagoujiao_feeds` 持久化。
+- 血量上限提升使用无上限的自定义属性 `old_wu_java:extra_max_health`（通过 `LivingEntity#getMaxHealth` 叠加），绕开原版 `generic.max_health` 的 **1024 上限**，喂食 64 次累计可达到 2100 最大生命。
+- **满 64 次后**：狼获得**永久力量 IV + 生命恢复 III**；此后开启**自动充能**——**仅当狼存在攻击目标时**（32 格内），每 tick 检测主人背包中是否有大狗叫，存在则自动消耗 1 个并蓄力 +1 格（共 **12 格**），依序播放 `大狗1~10`、`大狗11_re`、`dog_launch` 音频（蓄力格数与音频编号一一对应，序号同步到 `old_wu_java:charge` 属性）。**血量不满时也可充能**。音频来源：`tmp_cat_models/audio/` 中 `大狗1~13.ogg` 实际存在的 10 个文件（跳过缺失的 5、7）重新编号为 dagou_1~10，外加 `大狗11_re.ogg`（dagou_11_re）与 `dog_launch.ogg`（`dog_launch.ogg` 取自第三方 MIT 许可模组，见「第三方资源与许可」）。
+- **充能范围与冷却**：自动充能需主人位于狼 16 格内；每次蓄力需等上一段 `大狗N` 音频播放结束（按各音频实测时长换算 tick），冷却期间不消耗。
+- **音波攻击**：第 **12 次**蓄力（`dog_launch` 音频**开始后 1 tick**，不等待其播完）清空蓄力条并触发与监守者（warden）相同的**音波攻击**（`sonic_boom` 伤害 + 密集 `SONIC_BOOM` 粒子 + 击退，粒子密度约为监守者的 4 倍），伤害为 **67 点**（监守者为 10）。目标优先为狼当前仇恨目标（32 格内），否则为 16 格内最近的敌对生物（排除自己、主人、其它已驯服狼）。
+- 手持大狗叫或背包中有大狗叫并看向已驯服狼时，屏幕中央偏左显示 HUD：左侧绿色蓄力条（12 格）+ 右侧黄色喂食进度条（满 64 次填满，填充色 `#E5A822`、蓄力色 `#55FF55`、边框与底色 `#1E1F22`），视角离开狼立即消失。
 - 创造模式喂食不消耗物品。
 
 ## 新增物品：纸卷（paper_roll）
@@ -93,6 +100,34 @@
 ## 新增物品：纸卷（paper_roll）与大狗叫（dagoujiao）
 
 纸卷与大狗叫均加入模组专属创造模式物品栏（老吴），使用 Blockbench 导出的 3D 模型。
+
+## 第三方资源与许可（Third-Party Assets & Licenses）
+
+- **`dog_launch.ogg`**（第 12 次蓄力音效）取自 [ikunkk02-afk/Big-Dog-Bark](https://github.com/ikunkk02-afk/Big-Dog-Bark)（Minecraft 1.21.1 Fabric 模组「大狗叫」），源文件位于其 `assets/big_dog_bark/sounds/entity/dog_launch.ogg`。该仓库以 **MIT 许可** 发布，版权归 **寿云** 所有。
+
+### MIT License — Big-Dog-Bark
+
+> MIT License
+>
+> Copyright (c) 2026 寿云
+>
+> Permission is hereby granted, free of charge, to any person obtaining a copy
+> of this software and associated documentation files (the "Software"), to deal
+> in the Software without restriction, including without limitation the rights
+> to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+> copies of the Software, and to permit persons to whom the Software is
+> furnished to do so, subject to the following conditions:
+>
+> The above copyright notice and this permission notice shall be included in all
+> copies or substantial portions of the Software.
+>
+> THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+> IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+> FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+> AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+> LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+> OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+> SOFTWARE.
 
 ## License
 

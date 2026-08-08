@@ -340,6 +340,12 @@ public final class CatMatingLogic {
 			return Optional.of(maodie);
 		}
 
+		// 驯服的猫不会主动进入配对/战斗状态（含驯服猫互相之间）；
+		// 只有未驯服的猫会挑衅发起配对/战斗
+		if (cat.isTame()) {
+			return Optional.empty();
+		}
+
 		List<Cat> candidates = cat.level().getEntitiesOfClass(
 			Cat.class,
 			new AABB(cat.blockPosition()).inflate(ATTRACT_RANGE),

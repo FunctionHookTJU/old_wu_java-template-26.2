@@ -23,6 +23,13 @@ loom {
 			sourceSet sourceSets.client
 		}
 	}
+
+	// 开发客户端固定玩家名（离线模式，通过 --username 传入）
+	runs {
+		client {
+			programArgs("--username", project.dev_username)
+		}
+	}
 }
 
 dependencies {
