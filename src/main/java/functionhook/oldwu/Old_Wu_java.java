@@ -15,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 import functionhook.oldwu.advancement.MaodieObservationTracker;
 import functionhook.oldwu.attribute.ModAttributes;
+import functionhook.oldwu.block.ModBlocks;
 import functionhook.oldwu.cat.CatMatingLogic;
 import functionhook.oldwu.entity.ModEntityTypes;
 import functionhook.oldwu.item.ModItems;
@@ -38,6 +39,7 @@ public class Old_Wu_java implements ModInitializer {
 		ModParticles.init();
 		ModSounds.initialize();
 		ModEntityTypes.init();
+		ModBlocks.initialize();
 		ModItems.initialize();
 		ModAttributes.initialize();
 		MaodieObservationTracker.initialize();

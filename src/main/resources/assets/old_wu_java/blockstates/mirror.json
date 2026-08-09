@@ -1,0 +1,19 @@
+{
+  "variants": {
+    "facing=east": {
+      "model": "old_wu_java:block/mirror",
+      "y": 270
+    },
+    "facing=north": {
+      "model": "old_wu_java:block/mirror",
+      "y": 180
+    },
+    "facing=south": {
+      "model": "old_wu_java:block/mirror"
+    },
+    "facing=west": {
+      "model": "old_wu_java:block/mirror",
+      "y": 90
+    }
+  }
+}

@@ -13,6 +13,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
 import functionhook.oldwu.Old_Wu_java;
+import functionhook.oldwu.block.ModBlocks;
 
 public final class ModItems {
 	public static final ResourceKey<Item> PAPER_ROLL_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("paper_roll"));
@@ -33,6 +34,7 @@ public final class ModItems {
 			.displayItems((parameters, output) -> {
 				output.accept(PAPER_ROLL);
 				output.accept(DAGOUJIAO);
+				output.accept(ModBlocks.MIRROR);
 			})
 			.build()
 	);
