@@ -17,6 +17,8 @@ import functionhook.oldwu.advancement.MaodieObservationTracker;
 import functionhook.oldwu.attribute.ModAttributes;
 import functionhook.oldwu.block.ModBlocks;
 import functionhook.oldwu.cat.CatMatingLogic;
+import functionhook.oldwu.cat.CatPartners;
+import functionhook.oldwu.cat.CatState;
 import functionhook.oldwu.cat.GoodCatLogic;
 import functionhook.oldwu.entity.ModEntityTypes;
 import functionhook.oldwu.item.ModItems;
@@ -57,9 +59,13 @@ public class Old_Wu_java implements ModInitializer {
 			}
 
 			if (!level.isClientSide()) {
+				// 需等本次 flat 恢复后（非 FLAT 状态）才能再次触发好猫值增加
+				boolean alreadyFlat = CatPartners.getState(cat) == CatState.FLAT;
 				CatMatingLogic.enterFlat(cat);
 				// 铲子压扁：坏猫/键帽 50% 概率好猫值 +1
-				if (GoodCatLogic.getGoodValue(cat) < GoodCatLogic.BAD_THRESHOLD && cat.getRandom().nextBoolean()) {
+				if (!alreadyFlat
+						&& GoodCatLogic.getGoodValue(cat) < GoodCatLogic.BAD_THRESHOLD
+						&& cat.getRandom().nextBoolean()) {
 					GoodCatLogic.setGoodValue(cat, GoodCatLogic.getGoodValue(cat) + 1);
 				}
 				level.playSound(null, cat, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
