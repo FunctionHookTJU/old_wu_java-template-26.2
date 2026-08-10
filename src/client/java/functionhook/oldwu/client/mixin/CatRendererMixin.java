@@ -30,6 +30,8 @@ import functionhook.oldwu.client.render.CatStateCarrier;
 import functionhook.oldwu.client.render.CatStateModelHolder;
 import functionhook.oldwu.client.model.GroomingCatModel;
 import functionhook.oldwu.client.model.GroomingCatBabyModel;
+import functionhook.oldwu.client.model.HitGroundCatModel;
+import functionhook.oldwu.client.model.HitGroundCatBabyModel;
 
 @Mixin(CatRenderer.class)
 	public abstract class CatRendererMixin implements CatStateModelHolder {
@@ -58,6 +60,10 @@ import functionhook.oldwu.client.model.GroomingCatBabyModel;
 	private GroomingCatModel oldwuGroomingModel;
 	@Unique
 	private GroomingCatBabyModel oldwuGroomingBabyModel;
+	@Unique
+	private HitGroundCatModel oldwuHitGroundModel;
+	@Unique
+	private HitGroundCatBabyModel oldwuHitGroundBabyModel;
 
 	@Inject(method = "<init>", at = @At("TAIL"))
 	private void oldwu_bakeModels(EntityRendererProvider.Context context, CallbackInfo ci) {
@@ -72,6 +78,8 @@ import functionhook.oldwu.client.model.GroomingCatBabyModel;
 		this.oldwuFlatBabyModel = new FlatCatBabyModel(context.bakeLayer(FlatCatBabyModel.LAYER_LOCATION));
 		this.oldwuGroomingModel = new GroomingCatModel(context.bakeLayer(GroomingCatModel.LAYER_LOCATION));
 		this.oldwuGroomingBabyModel = new GroomingCatBabyModel(context.bakeLayer(GroomingCatModel.LAYER_LOCATION));
+		this.oldwuHitGroundModel = new HitGroundCatModel(context.bakeLayer(HitGroundCatModel.LAYER_LOCATION));
+		this.oldwuHitGroundBabyModel = new HitGroundCatBabyModel(context.bakeLayer(HitGroundCatBabyModel.LAYER_LOCATION));
 	}
 
 	@Inject(method = "extractRenderState", at = @At("TAIL"))
@@ -83,6 +91,7 @@ import functionhook.oldwu.client.model.GroomingCatBabyModel;
 		((CatStateCarrier) (Object) state).oldwu_setStateId(CatPartners.getState(entity).ordinal());
 		((CatStateCarrier) (Object) state).oldwu_setDanceModelIndex(CatPartners.getDanceModelIndex(entity));
 		((CatStateCarrier) (Object) state).oldwu_setMaodieAnimTick(CatPartners.getMaodieAnimTick(entity));
+		((CatStateCarrier) (Object) state).oldwu_setHitgroundAnimTick(CatPartners.getHitgroundAnimTick(entity));
 		// 狂暴状态（血量 ≤ 阈值）：用于常态循环播放翻滚动画
 		((CatStateCarrier) (Object) state).oldwu_setMaodieRage(entity.getHealth() <= MaodieLogic.RAGE_THRESHOLD);
 		if (maodie) {
@@ -147,5 +156,15 @@ import functionhook.oldwu.client.model.GroomingCatBabyModel;
 	@Override
 	public GroomingCatBabyModel oldwu_getGroomingBabyModel() {
 		return this.oldwuGroomingBabyModel;
+	}
+
+	@Override
+	public HitGroundCatModel oldwu_getHitGroundModel() {
+		return this.oldwuHitGroundModel;
+	}
+
+	@Override
+	public HitGroundCatBabyModel oldwu_getHitGroundBabyModel() {
+		return this.oldwuHitGroundBabyModel;
 	}
 }

@@ -24,4 +24,8 @@ public interface CatStateModelHolder {
 	GroomingCatModel oldwu_getGroomingModel();
 
 	GroomingCatBabyModel oldwu_getGroomingBabyModel();
+
+	HitGroundCatModel oldwu_getHitGroundModel();
+
+	HitGroundCatBabyModel oldwu_getHitGroundBabyModel();
 }

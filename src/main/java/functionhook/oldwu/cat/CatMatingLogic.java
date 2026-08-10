@@ -11,17 +11,25 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.animal.equine.AbstractHorse;
 import net.minecraft.world.entity.animal.camel.Camel;
 import net.minecraft.world.entity.animal.feline.Cat;
 import net.minecraft.world.entity.animal.pig.Pig;
+import net.minecraft.world.entity.monster.Monster;
+import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.vehicle.minecart.AbstractMinecart;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
 import functionhook.oldwu.audio.CatAudio;
+import functionhook.oldwu.block.ModBlocks;
 import functionhook.oldwu.particle.ModParticles;
+import net.minecraft.core.BlockPos;
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.world.level.ClipContext;
+import net.minecraft.world.phys.BlockHitResult;
+import net.minecraft.world.phys.HitResult;
 
 public final class CatMatingLogic {
 	private static final double ATTRACT_RANGE = 16.0;//两只猫互相攻击的检测范围
@@ -45,6 +53,18 @@ public final class CatMatingLogic {
 	private static final float RECOVERY_EXIT_RATIO = 0.8F;
 	private static final int REGENERATION_DURATION = 200;
 	public static final String MAODIE_NAME = "maodie";
+	/** 镜子触发愤怒的检测范围（格）。 */
+	private static final double MIRROR_RANGE = 3.0;
+	/** 老吴撼地掌：玩家索敌范围（格）。 */
+	private static final double PLAYER_RANGE = 16.0;
+	/** 老吴撼地掌：近战攻击距离平方（3 格）。 */
+	private static final double PALM_ATTACK_RANGE_SQR = 9.0;
+	/** 老吴撼地掌：动画时长（tick，对应 0.5s 动画）。 */
+	private static final int PALM_DURATION_TICKS = 10;
+	/** 老吴撼地掌：攻击间隔（tick）。 */
+	private static final int PALM_COOLDOWN_TICKS = 10;
+	/** 普通猫被玩家攻击后的反击窗口（tick）。 */
+	private static final int RETALIATION_WINDOW_TICKS = 200;
 
 	private CatMatingLogic() {
 	}
@@ -57,13 +77,44 @@ public final class CatMatingLogic {
 		return cat.hasCustomName() && MAODIE_NAME.equals(cat.getCustomName().getString());
 	}
 
+	/**
+	 * 曾经被命名为 "maodie" 的猫（无论驯服与否）：改名后保留 325 血量上限，
+	 * 不再应用键帽/已驯服的血量加成。
+	 */
+	private static void ensureRetainedMaodieHealth(Cat cat) {
+		var attribute = cat.getAttribute(Attributes.MAX_HEALTH);
+		if (attribute != null && attribute.getBaseValue() != MaodieLogic.MAX_HEALTH) {
+			attribute.setBaseValue(MaodieLogic.MAX_HEALTH);
+			cat.setHealth(cat.getMaxHealth());
+		}
+	}
+
 	public static void tick(ServerLevel level, Cat cat) {
+		// 好猫值懒分配（覆盖所有猫；在任何分支前完成，保证驯服判定等逻辑可用）
+		GoodCatLogic.assignRandomIfAbsent(cat);
+		// 曾是 maodie 则记录标记；已驯服/键帽加成由 maodie 自身管理血量（325），
+		// 普通猫仅在从未当过 maodie 时应用加成，避免覆盖已保留的 325 血量。
+		if (isMaodie(cat)) {
+			CatPartners.setWasMaodie(cat, true);
+		} else if (CatPartners.getWasMaodie(cat)) {
+			ensureRetainedMaodieHealth(cat);
+		} else {
+			GoodCatLogic.applyKeycapBonuses(cat);
+			GoodCatLogic.applyTamedBonuses(cat);
+		}
+
 		int peaceTimer = CatPartners.getBattlePeaceTimer(cat);
 		if (peaceTimer > 0) {
 			CatPartners.setBattlePeaceTimer(cat, peaceTimer - 1);
 			if (peaceTimer % 5 == 0) {
 				spawnWetParticles(level, cat);
 			}
+		}
+
+		// 撼地掌攻击间隔冷却全局递减
+		int hitCooldown = CatPartners.getHitgroundCooldown(cat);
+		if (hitCooldown > 0) {
+			CatPartners.setHitgroundCooldown(cat, hitCooldown - 1);
 		}
 
 		if (!isMaodie(cat)) {
@@ -101,6 +152,11 @@ public final class CatMatingLogic {
 			return;
 		}
 
+		if (CatPartners.getState(cat) == CatState.HITGROUND) {
+			hitgroundTick(level, cat);
+			return;
+		}
+
 		// 无法进入生气或配对模式，这段是对应代码
 		if (CatPartners.getBattlePeaceTimer(cat) > 0) {
 			CatPartners.getPartner(cat).ifPresent(partnerId -> {
@@ -132,6 +188,11 @@ public final class CatMatingLogic {
 		}
 
 		if (trackMinecart(cat)) {
+			return;
+		}
+
+		// 猫能观察到 3 格内的镜子时进入 angry（maodie 由上面的分支直接返回，不会触发）
+		if (tryMirrorAngry(cat)) {
 			return;
 		}
 
@@ -167,7 +228,7 @@ public final class CatMatingLogic {
 				default -> pairingTick(cat, partner);
 			}
 		} else {
-			tryAngryNearby(cat);
+			tryAngryNearby(level, cat);
 		}
 	}
 
@@ -283,15 +344,96 @@ public final class CatMatingLogic {
 		}
 	}
 
-	private static void tryAngryNearby(Cat cat) {
+	private static void tryAngryNearby(ServerLevel level, Cat cat) {
 		findCandidate(cat).ifPresentOrElse(
 			other -> chaseAndPair(cat, other),
 			() -> {
-				if (transitionTo(cat, CatState.COMMON)) {
-					cat.getNavigation().stop();
+				// 无配对候选时，未驯服猫攻击玩家、已驯服猫攻击敌对/指定生物（配对优先级高于攻击）
+				if (!tryAttackTarget(level, cat)) {
+					if (transitionTo(cat, CatState.COMMON)) {
+						cat.getNavigation().stop();
+					}
 				}
 			}
 		);
+	}
+
+	/**
+	 * 猫能观察到 3 格内的镜子时进入 pairing 状态（原地、视角锁定在镜子上不转身）。
+	 *
+	 * <p>仅普通猫触发（maodie 在 tick 早期分支已返回）；镜子不可见或超出范围后恢复 common。
+	 *
+	 * <p>优先级：<b>低于与其他猫的配对</b>——若存在可配对的其它猫（或 maodie），
+	 * 即使当前正对镜注视，也优先让出控制、转而去与其他猫配对。
+	 *
+	 * @return 本 tick 是否已由"对镜注视"逻辑接管
+	 */
+	private static boolean tryMirrorAngry(Cat cat) {
+		// 对镜配对的优先级低于对其他猫的配对：存在可配对目标时让出控制
+		if (findCandidate(cat).isPresent()) {
+			if (CatPartners.getMirrorTicks(cat) > 0) {
+				CatPartners.setMirrorTicks(cat, 0);
+				CatPartners.setPartner(cat, null);
+				transitionTo(cat, CatState.COMMON);
+				cat.getNavigation().stop();
+			}
+			return false;
+		}
+
+		BlockPos mirror = findVisibleMirror(cat);
+		if (mirror == null) {
+			// 若正处于对镜注视且镜子已不可见，恢复 common
+			if (CatPartners.getMirrorTicks(cat) > 0) {
+				CatPartners.setMirrorTicks(cat, 0);
+				CatPartners.setPartner(cat, null);
+				transitionTo(cat, CatState.COMMON);
+				cat.getNavigation().stop();
+			}
+			return false;
+		}
+
+		CatPartners.setPartner(cat, null);
+		CatPartners.setMirrorTicks(cat, 1);
+		transitionTo(cat, CatState.PAIRING);
+
+		// 视角锁定在镜子中心，不移动、不转身
+		Vec3 mirrorCenter = Vec3.atCenterOf(mirror);
+		cat.getLookControl().setLookAt(mirrorCenter.x, mirrorCenter.y, mirrorCenter.z, 360.0F, 360.0F);
+		cat.getNavigation().stop();
+
+		// 进入配对状态时播放配对（laowu 系列）音效；playStateSound 自带播放间隔，不会重叠
+		CatAudio.playStateSound(cat, CatState.PAIRING);
+		return true;
+	}
+
+	/**
+	 * 在 3 格范围内查找"猫能观察到"的镜子方块（以猫的眼睛为起点、镜子中心为终点做射线检测）。
+	 */
+	private static BlockPos findVisibleMirror(Cat cat) {
+		Vec3 eye = cat.getEyePosition();
+		int range = (int) Math.ceil(MIRROR_RANGE);
+		for (BlockPos pos : BlockPos.betweenClosed(cat.blockPosition().offset(-range, -range, -range), cat.blockPosition().offset(range, range, range))) {
+			if (!cat.level().getBlockState(pos).is(ModBlocks.MIRROR)) {
+				continue;
+			}
+			if (cat.distanceToSqr(Vec3.atCenterOf(pos)) > MIRROR_RANGE * MIRROR_RANGE) {
+				continue;
+			}
+			Vec3 mirrorCenter = Vec3.atCenterOf(pos);
+			BlockHitResult hit = cat.level().clip(new ClipContext(
+				eye,
+				mirrorCenter,
+				ClipContext.Block.VISUAL,
+				ClipContext.Fluid.NONE,
+				cat
+			));
+			// 射线未被阻挡（直达镜子），或命中点就是镜子本身
+			if (hit.getType() == HitResult.Type.MISS
+					|| cat.level().getBlockState(hit.getBlockPos()).is(ModBlocks.MIRROR)) {
+				return pos;
+			}
+		}
+		return null;
 	}
 
 	/**
@@ -349,7 +491,11 @@ public final class CatMatingLogic {
 		List<Cat> candidates = cat.level().getEntitiesOfClass(
 			Cat.class,
 			new AABB(cat.blockPosition()).inflate(ATTRACT_RANGE),
-			candidate -> candidate != cat && !CatPartners.isPaired(candidate) && !candidate.isOrderedToSit()
+			candidate -> candidate != cat
+				&& !CatPartners.isPaired(candidate)
+				&& !candidate.isOrderedToSit()
+				// 绝世好猫不会主动与其他绝世好猫配对/战斗
+				&& !(GoodCatLogic.isPeerless(cat) && GoodCatLogic.isPeerless(candidate))
 		);
 		if (candidates.isEmpty()) {
 			return Optional.empty();
@@ -623,5 +769,176 @@ public final class CatMatingLogic {
 			cat.getBbWidth() * 0.4,
 			0.02
 		);
+	}
+
+	/**
+	 * 老吴撼地掌总入口（仅无配对候选时调用，配对优先级高于攻击）：
+	 * <ul>
+	 *   <li>未驯服：键帽/坏猫主动攻击玩家，普通猫被玩家攻击后反击；绝世好猫永不攻击。</li>
+	 *   <li>已驯服：普通猫/绝世好猫主动攻击玩家以外的目标（敌对生物/玩家指定生物），
+	 *       恐吓 10% / 攻击 90%。</li>
+	 * </ul>
+	 *
+	 * @return 本 tick 是否已由攻击逻辑接管
+	 */
+	private static boolean tryAttackTarget(ServerLevel level, Cat cat) {
+		if (cat.isTame()) {
+			return tryTamedPalmAttack(level, cat);
+		}
+		if (GoodCatLogic.isPeerless(cat)) {
+			// 未驯服绝世好猫任意情况不攻击
+			return false;
+		}
+		return tryPlayerPalmAttack(level, cat);
+	}
+
+	/**
+	 * 未驯服猫对玩家的撼地掌：坏猫/键帽主动攻击玩家，普通猫在被玩家攻击后一段时间内反击。
+	 */
+	private static boolean tryPlayerPalmAttack(ServerLevel level, Cat cat) {
+		Player target = findTargetPlayer(cat);
+		if (target == null) {
+			return false;
+		}
+		return chaseAndStrikePalm(level, cat, target);
+	}
+
+	/**
+	 * 已驯服猫对玩家以外目标的撼地掌（恐吓 10% / 攻击 90%）：
+	 * 目标优先级——主人正在攻击的生物 &gt; 猫当前仇恨目标 &gt; 最近的敌对生物。
+	 */
+	private static boolean tryTamedPalmAttack(ServerLevel level, Cat cat) {
+		LivingEntity target = findTamedTarget(cat);
+		if (target == null) {
+			return false;
+		}
+		return chaseAndStrikePalm(level, cat, target);
+	}
+
+	/**
+	 * 已驯服猫目标选择：优先主人正在攻击的生物（狼式协同），其次猫当前仇恨目标
+	 * （原版 AI：幻翼/苦力怕等），最后 16 格内最近的敌对生物。
+	 */
+	private static LivingEntity findTamedTarget(Cat cat) {
+		LivingEntity ownerTarget = null;
+		if (cat.getOwner() instanceof Player owner) {
+			ownerTarget = owner.getLastHurtMob();
+		}
+		if (isValidPalmTarget(cat, ownerTarget)) {
+			return ownerTarget;
+		}
+
+		LivingEntity current = cat.getTarget();
+		if (isValidPalmTarget(cat, current)) {
+			return current;
+		}
+
+		return findNearestMonster(cat);
+	}
+
+	/** 目标有效判定：存活、非自身、非玩家、16 格球形内且视线可见。 */
+	private static boolean isValidPalmTarget(Cat cat, LivingEntity target) {
+		return target != null
+			&& target.isAlive()
+			&& target != cat
+			&& !(target instanceof Player)
+			&& cat.distanceToSqr(target) <= PLAYER_RANGE * PLAYER_RANGE
+			&& cat.hasLineOfSight(target);
+	}
+
+	private static LivingEntity findNearestMonster(Cat cat) {
+		List<Monster> monsters = cat.level().getEntitiesOfClass(
+			Monster.class,
+			new AABB(cat.blockPosition()).inflate(PLAYER_RANGE),
+			monster -> isValidPalmTarget(cat, monster)
+		);
+		if (monsters.isEmpty()) {
+			return null;
+		}
+		return monsters.stream().min(Comparator.comparingDouble(cat::distanceToSqr)).orElse(null);
+	}
+
+	/** 逼近目标并适时施放撼地掌（含冷却等待）。 */
+	private static boolean chaseAndStrikePalm(ServerLevel level, Cat cat, LivingEntity target) {
+		double distanceSqr = cat.distanceToSqr(target);
+		if (distanceSqr > PALM_ATTACK_RANGE_SQR) {
+			cat.getNavigation().moveTo(target, 1.0);
+			cat.getLookControl().setLookAt(target, 30.0F, 30.0F);
+			return true;
+		}
+
+		cat.getNavigation().stop();
+		cat.getLookControl().setLookAt(target, 30.0F, 30.0F);
+
+		if (CatPartners.getHitgroundCooldown(cat) > 0) {
+			// 攻击间隔冷却中：原地等待，不出击
+			return true;
+		}
+
+		strikePalm(level, cat, target);
+		return true;
+	}
+
+	/**
+	 * 16 格内最近的可攻击玩家：非创造/旁观、视线可见；坏猫/键帽主动索敌，
+	 * 普通猫仅在被该玩家攻击后的反击窗口内索敌。
+	 */
+	private static Player findTargetPlayer(Cat cat) {
+		// 坏猫/键帽（好猫值 <40）主动攻击玩家；普通猫仅反击
+		boolean aggressive = GoodCatLogic.getGoodValue(cat) < GoodCatLogic.BAD_THRESHOLD;
+		List<Player> players = cat.level().getEntitiesOfClass(
+			Player.class,
+			new AABB(cat.blockPosition()).inflate(PLAYER_RANGE),
+			player -> player.isAlive()
+				&& !player.isCreative()
+				&& !player.isSpectator()
+				&& cat.distanceToSqr(player) <= PLAYER_RANGE * PLAYER_RANGE
+				&& cat.hasLineOfSight(player)
+				&& (aggressive || isRecentPlayerAggressor(cat, player))
+		);
+		if (players.isEmpty()) {
+			return null;
+		}
+		return players.stream().min(Comparator.comparingDouble(cat::distanceToSqr)).orElse(null);
+	}
+
+	/** 普通猫反击判定：最近一次受伤来自该玩家且在反击窗口内。 */
+	private static boolean isRecentPlayerAggressor(Cat cat, Player player) {
+		return cat.getLastHurtByMob() == player
+			&& cat.tickCount - cat.getLastHurtByMobTimestamp() < RETALIATION_WINDOW_TICKS;
+	}
+
+	/**
+	 * 施放老吴撼地掌：进入 HITGROUND 状态播放动画（0.5s），并立即判定伤害。
+	 * 恐吓类（未驯服 = 好猫值/100，已驯服 = 10%）不造成伤害；
+	 * 攻击类造成 {@code (100-好猫值)*0.1} 伤害，键帽额外 20% 概率附带凋零 I 5 秒。
+	 */
+	private static void strikePalm(ServerLevel level, Cat cat, LivingEntity target) {
+		CatPartners.setHitgroundTimer(cat, PALM_DURATION_TICKS);
+		CatPartners.setHitgroundAnimTick(cat, cat.tickCount);
+		CatPartners.setHitgroundCooldown(cat, PALM_COOLDOWN_TICKS);
+		transitionTo(cat, CatState.HITGROUND);
+
+		CatAudio.playHaSound(cat);
+		if (GoodCatLogic.isIntimidate(cat)) {
+			// 恐吓类：不对目标造成伤害
+			return;
+		}
+
+		target.hurtServer(level, cat.damageSources().mobAttack(cat), GoodCatLogic.palmDamage(cat));
+		if (GoodCatLogic.isKeycap(cat) && cat.getRandom().nextFloat() < GoodCatLogic.KEYCAP_WITHER_CHANCE) {
+			target.addEffect(new MobEffectInstance(MobEffects.WITHER, GoodCatLogic.KEYCAP_WITHER_DURATION, 0), cat);
+		}
+	}
+
+	/** 撼地掌动画期间：停导航、计时递减，归零后恢复 common。 */
+	private static void hitgroundTick(ServerLevel level, Cat cat) {
+		cat.getNavigation().stop();
+		int timer = CatPartners.getHitgroundTimer(cat);
+		if (timer > 0) {
+			CatPartners.setHitgroundTimer(cat, timer - 1);
+		} else {
+			transitionTo(cat, CatState.COMMON);
+		}
 	}
 }

@@ -21,6 +21,8 @@ public abstract class CatRenderStateMixin implements CatStateCarrier {
 	private int oldwuMaodieAnimTick;
 	@Unique
 	private boolean oldwuMaodieRage;
+	@Unique
+	private int oldwuHitgroundAnimTick;
 
 	@Override
 	public int oldwu_getStateId() {
@@ -80,5 +82,15 @@ public abstract class CatRenderStateMixin implements CatStateCarrier {
 	@Override
 	public void oldwu_setMaodieRage(boolean rage) {
 		this.oldwuMaodieRage = rage;
+	}
+
+	@Override
+	public int oldwu_getHitgroundAnimTick() {
+		return this.oldwuHitgroundAnimTick;
+	}
+
+	@Override
+	public void oldwu_setHitgroundAnimTick(int tick) {
+		this.oldwuHitgroundAnimTick = tick;
 	}
 }

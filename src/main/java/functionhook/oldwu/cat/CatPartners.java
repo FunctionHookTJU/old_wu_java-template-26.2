@@ -23,6 +23,18 @@ public final class CatPartners {
 	public static final EntityDataAccessor<Integer> MAODIE_NORMAL_FIRE_COOLDOWN = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> GROOMING_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	public static final EntityDataAccessor<Integer> BATTLE_PEACE_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	/** 正对镜子愤怒的剩余时间（tick）；>0 表示猫正在对镜子进入 angry 状态。 */
+	public static final EntityDataAccessor<Integer> MIRROR_TICKS = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	/** 好猫值（0~100），-1 表示尚未分配。 */
+	public static final EntityDataAccessor<Integer> GOOD_VALUE = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	/** 老吴撼地掌动画剩余时间（tick）。 */
+	public static final EntityDataAccessor<Integer> HITGROUND_TIMER = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	/** 老吴撼地掌攻击间隔冷却（tick）。 */
+	public static final EntityDataAccessor<Integer> HITGROUND_COOLDOWN = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	/** 老吴撼地掌动画触发 tick（同步给客户端播放一次性动画）。 */
+	public static final EntityDataAccessor<Integer> HITGROUND_ANIM_TICK = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	/** 是否曾经被命名为 "maodie"：改名后保留 325 血量。 */
+	public static final EntityDataAccessor<Boolean> WAS_MAODIE = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.BOOLEAN);
 	private CatPartners() {
 	}
 
@@ -48,9 +60,51 @@ public final class CatPartners {
 	 * 在构造时按已注册数量固定，延迟注册会越界）。
 	 */
 	public static void initAccessors() {
-		if (PARTNER_UUID == null || STATE == null || ATTACK_COOLDOWN == null || FLAT_TIMER == null || PAIRING_TIMER == null) {
+		if (PARTNER_UUID == null || STATE == null || ATTACK_COOLDOWN == null || FLAT_TIMER == null || PAIRING_TIMER == null
+				|| GOOD_VALUE == null || HITGROUND_TIMER == null || HITGROUND_COOLDOWN == null || HITGROUND_ANIM_TICK == null
+				|| WAS_MAODIE == null) {
 			throw new IllegalStateException("Cat data accessors not initialized");
 		}
+	}
+
+	public static boolean getWasMaodie(Cat cat) {
+		return cat.getEntityData().get(WAS_MAODIE);
+	}
+
+	public static void setWasMaodie(Cat cat, boolean value) {
+		cat.getEntityData().set(WAS_MAODIE, value);
+	}
+
+	public static int getGoodValue(Cat cat) {
+		return cat.getEntityData().get(GOOD_VALUE);
+	}
+
+	public static void setGoodValue(Cat cat, int value) {
+		cat.getEntityData().set(GOOD_VALUE, value);
+	}
+
+	public static int getHitgroundTimer(Cat cat) {
+		return cat.getEntityData().get(HITGROUND_TIMER);
+	}
+
+	public static void setHitgroundTimer(Cat cat, int value) {
+		cat.getEntityData().set(HITGROUND_TIMER, value);
+	}
+
+	public static int getHitgroundCooldown(Cat cat) {
+		return cat.getEntityData().get(HITGROUND_COOLDOWN);
+	}
+
+	public static void setHitgroundCooldown(Cat cat, int value) {
+		cat.getEntityData().set(HITGROUND_COOLDOWN, value);
+	}
+
+	public static int getHitgroundAnimTick(Cat cat) {
+		return cat.getEntityData().get(HITGROUND_ANIM_TICK);
+	}
+
+	public static void setHitgroundAnimTick(Cat cat, int value) {
+		cat.getEntityData().set(HITGROUND_ANIM_TICK, value);
 	}
 
 	public static int getMaodieHaqiTimer(Cat cat) {
@@ -116,6 +170,10 @@ public final class CatPartners {
 	public static int getBattlePeaceTimer(Cat cat) {return cat.getEntityData().get(BATTLE_PEACE_TIMER);}
 
 	public static void setBattlePeaceTimer(Cat cat, int value) { cat.getEntityData().set(BATTLE_PEACE_TIMER, value);}
+
+	public static int getMirrorTicks(Cat cat) {return cat.getEntityData().get(MIRROR_TICKS);}
+
+	public static void setMirrorTicks(Cat cat, int value) { cat.getEntityData().set(MIRROR_TICKS, value);}
 
 	public static CatState getState(Cat cat) {
 		return CatState.fromInt(cat.getEntityData().get(STATE));

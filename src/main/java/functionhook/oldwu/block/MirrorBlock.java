@@ -30,6 +30,9 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * <p>实现参考发光地衣/火把：通过 {@link HorizontalDirectionalBlock#FACING} 记录朝向，
  * 通过 {@link SimpleWaterloggedBlock} 支持含水；{@code noCollision} 使其没有碰撞箱，
  * 只保留用于高亮/交互的薄片选中形状。
+ *
+ * <p>反射效果：镜面贴图使用高反光 PBR（specular）材质，由光影包自行计算反射，
+ * 无需自定义渲染代码。
  */
 public class MirrorBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock {
 	public static final MapCodec<MirrorBlock> CODEC = simpleCodec(MirrorBlock::new);
