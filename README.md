@@ -1,4 +1,5 @@
-# Old_Wu_java  老吴Mod Java版
+# Old_Wu_java  吴家物语
+-老吴Mod Java版
 # 游戏版本: 26.2 fabric版
 由FunctionHookTJU(宇佐见函钩)制作并开源
 ## 状态机
