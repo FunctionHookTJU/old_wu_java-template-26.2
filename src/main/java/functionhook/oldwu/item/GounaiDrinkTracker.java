@@ -10,7 +10,6 @@ import com.mojang.serialization.Codec;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentTarget;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 
 import net.minecraft.core.BlockPos;
@@ -65,12 +64,13 @@ public final class GounaiDrinkTracker {
 	private static final AttachmentType<ServerPlayer.RespawnConfig> SAVED_RESPAWN =
 		AttachmentRegistry.createPersistent(Old_Wu_java.id("gounai_saved_respawn"), ServerPlayer.RespawnConfig.CODEC);
 
-	/** 第 3 次饮用后、第 4 次饮用前的现实时间冷却结束时刻（毫秒时间戳，0 = 无冷却）。 */
+	/** 第 3 次饮用后、第 4 次饮用前的现实时间冷却结束时刻（毫秒时间戳，0 = 无冷却）。
+	 *  非持久化：崩溃/重启残留的过期值不会污染后续会话。 */
 	private static final AttachmentType<Long> FOURTH_DRINK_COOLDOWN_END =
-		AttachmentRegistry.createPersistent(Old_Wu_java.id("gounai_fourth_drink_cooldown"), Codec.LONG);
+		AttachmentRegistry.create(Old_Wu_java.id("gounai_fourth_drink_cooldown"));
 
 	/** 第 3 次饮用后需等待的现实秒数，之后才允许第 4 次饮用。 */
-	private static final long FOURTH_DRINK_COOLDOWN_SECONDS = 20L;
+	private static final long FOURTH_DRINK_COOLDOWN_SECONDS = 10L;
 
 	/** 宇宙热寂（heat_death）虚空维度。 */
 	private static final ResourceKey<Level> HEAT_DEATH = ResourceKey.create(Registries.DIMENSION, Old_Wu_java.id("heat_death"));
@@ -101,18 +101,29 @@ public final class GounaiDrinkTracker {
 	 * 注册服务端事件：热寂维度（0,0,0）基岩补位 + 春秋肠字幕序列推进。
 	 */
 	public static void initialize() {
-		ServerChunkEvents.CHUNK_LOAD.register((serverLevel, chunk, newChunk) -> {
-			if (!serverLevel.dimension().equals(HEAT_DEATH)) {
-				return;
-			}
-			if (chunk.getPos().x() != 0 || chunk.getPos().z() != 0) {
-				return;
-			}
-			if (serverLevel.getBlockState(HEAT_DEATH_BEDROCK_POS).isAir()) {
-				serverLevel.setBlockAndUpdate(HEAT_DEATH_BEDROCK_POS, Blocks.BEDROCK.defaultBlockState());
-			}
-		});
-		ServerTickEvents.END_SERVER_TICK.register(GounaiDrinkTracker::tickSequences);
+		ServerTickEvents.END_SERVER_TICK.register(GounaiDrinkTracker::tickServer);
+	}
+
+	private static void tickServer(MinecraftServer server) {
+		tickSequences(server);
+		ensureHeatDeathBedrock(server);
+	}
+
+	/**
+	 * 若热寂维度有玩家且 (0,0,0) 基岩缺失，则补位。
+	 * 注意：不能在 CHUNK_LOAD 事件中改方块（会死锁），只能在安全的服务端 tick 里放置。
+	 */
+	private static void ensureHeatDeathBedrock(MinecraftServer server) {
+		ServerLevel heatDeath = server.getLevel(HEAT_DEATH);
+		if (heatDeath == null) {
+			return;
+		}
+		boolean playerInHeatDeath = server.getPlayerList().getPlayers().stream()
+			.anyMatch(p -> p.level().dimension().equals(HEAT_DEATH));
+		if (playerInHeatDeath && heatDeath.getBlockState(HEAT_DEATH_BEDROCK_POS).isAir()) {
+			heatDeath.setBlockAndUpdate(HEAT_DEATH_BEDROCK_POS, Blocks.BEDROCK.defaultBlockState());
+			Old_Wu_java.LOGGER.info("[HeatDeath] Bedrock (re)placed at {}", HEAT_DEATH_BEDROCK_POS);
+		}
 	}
 
 	private static void tickSequences(MinecraftServer server) {
@@ -213,6 +224,11 @@ public final class GounaiDrinkTracker {
 		}
 		player.setAttached(TRAPPED, true);
 		player.teleportTo(heatDeathLevel, 0.5, 1.0, 0.5, Set.of(), player.getYRot(), player.getXRot(), false);
+		// 传送完成后（原点区块已加载）在安全时机放置基岩
+		if (heatDeathLevel.getBlockState(HEAT_DEATH_BEDROCK_POS).isAir()) {
+			heatDeathLevel.setBlockAndUpdate(HEAT_DEATH_BEDROCK_POS, Blocks.BEDROCK.defaultBlockState());
+			Old_Wu_java.LOGGER.info("[HeatDeath] Bedrock placed at {}", HEAT_DEATH_BEDROCK_POS);
+		}
 		LevelData.RespawnData respawnData = LevelData.RespawnData.of(HEAT_DEATH, HEAT_DEATH_RESPAWN_POS, player.getYRot(), player.getXRot());
 		player.setRespawnPosition(new ServerPlayer.RespawnConfig(respawnData, true), true);
 	}
