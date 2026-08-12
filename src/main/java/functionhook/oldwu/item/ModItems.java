@@ -1,5 +1,6 @@
 package functionhook.oldwu.item;
 
+import java.util.List;
 import java.util.function.Function;
 
 import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
@@ -9,11 +10,16 @@ import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.effect.MobEffectInstance;
+import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.item.component.Consumables;
+import net.minecraft.world.item.component.ItemLore;
+import net.minecraft.world.item.consume_effects.ApplyStatusEffectsConsumeEffect;
+import net.minecraft.world.food.FoodProperties;
 
 import functionhook.oldwu.Old_Wu_java;
 import functionhook.oldwu.block.ModBlocks;
@@ -22,6 +28,7 @@ public final class ModItems {
 	public static final ResourceKey<Item> PAPER_ROLL_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("paper_roll"));
 	public static final ResourceKey<Item> DAGOUJIAO_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("dagoujiao"));
 	public static final ResourceKey<Item> GOUNAI_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("gounai"));
+	public static final ResourceKey<Item> CHUNQIU_CHANG_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("chunqiu_chang"));
 
 	public static final Item PAPER_ROLL = register(PAPER_ROLL_KEY, PaperRollItem::new, new Item.Properties().stacksTo(67));
 	public static final Item DAGOUJIAO = register(DAGOUJIAO_KEY, Item::new, new Item.Properties().stacksTo(64));
@@ -32,6 +39,31 @@ public final class ModItems {
 			.stacksTo(64)
 			.component(DataComponents.POTION_CONTENTS, PotionContents.EMPTY)
 			.component(DataComponents.CONSUMABLE, Consumables.DEFAULT_DRINK)
+			.component(DataComponents.FOOD, new FoodProperties.Builder().nutrition(6).saturationModifier(0.5F).build())
+			.component(
+				DataComponents.LORE,
+				new ItemLore(List.of(Component.literal("保质期：永久"), Component.literal("就连时间也惧怕它的存在")))
+			)
+	);
+
+	public static final Item CHUNQIU_CHANG = register(
+		CHUNQIU_CHANG_KEY,
+		Item::new,
+		new Item.Properties()
+			.stacksTo(64)
+			.food(
+				new FoodProperties.Builder().nutrition(6).saturationModifier(0.5F).build(),
+				Consumables.defaultFood()
+					.onConsume(
+						new ApplyStatusEffectsConsumeEffect(
+							List.of(
+								new MobEffectInstance(MobEffects.POISON, 60, 0),
+								new MobEffectInstance(MobEffects.NAUSEA, 100, 0)
+							)
+						)
+					)
+					.build()
+			)
 	);
 
 	// 模组专属创造模式标签页
@@ -47,6 +79,7 @@ public final class ModItems {
 				output.accept(PAPER_ROLL);
 				output.accept(DAGOUJIAO);
 				output.accept(GOUNAI);
+				output.accept(CHUNQIU_CHANG);
 				output.accept(ModBlocks.MIRROR);
 			})
 			.build()

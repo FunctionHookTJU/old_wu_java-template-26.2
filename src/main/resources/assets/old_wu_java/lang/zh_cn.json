@@ -4,6 +4,7 @@
 	"item.old_wu_java.paper_roll": "纸卷",
 	"item.old_wu_java.dagoujiao": "大狗叫",
 	"item.old_wu_java.gounai": "野生狗奶",
+	"item.old_wu_java.chunqiu_chang": "春秋肠",
 	"block.old_wu_java.mirror": "镜子",
 	"itemGroup.old_wu_java.old_wu": "老吴",
 	"subtitle.old_wu_java.ha": "哈气",
@@ -13,5 +14,7 @@
 	"advancements.old_wu_java.spot_check_camera.title": "抽查运镜",
 	"advancements.old_wu_java.spot_check_camera.description": "连续两次使用望远镜观察耄耋",
 	"advancements.old_wu_java.old_friend_gone.title": "昔人已乘黄鹤去",
-	"advancements.old_wu_java.old_friend_gone.description": "击杀耄耋"
+	"advancements.old_wu_java.old_friend_gone.description": "击杀耄耋",
+	"advancements.old_wu_java.wild_dog_milk.title": "就连时间也惧怕它的存在",
+	"advancements.old_wu_java.wild_dog_milk.description": "获得一瓶野生狗奶"
 }

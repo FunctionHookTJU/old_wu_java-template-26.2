@@ -1,0 +1,24 @@
+{
+  "parent": "minecraft:adventure/root",
+  "display": {
+    "icon": { "id": "old_wu_java:gounai" },
+    "title": { "translate": "advancements.old_wu_java.wild_dog_milk.title" },
+    "description": { "translate": "advancements.old_wu_java.wild_dog_milk.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true,
+    "hidden": false
+  },
+  "criteria": {
+    "has_gounai": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "old_wu_java:gounai"
+          }
+        ]
+      }
+    }
+  }
+}
