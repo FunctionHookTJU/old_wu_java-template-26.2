@@ -20,6 +20,7 @@ import functionhook.oldwu.cat.CatMatingLogic;
 import functionhook.oldwu.cat.GoodCatLogic;
 import functionhook.oldwu.effect.ModEffects;
 import functionhook.oldwu.entity.ModEntityTypes;
+import functionhook.oldwu.item.GounaiDrinkTracker;
 import functionhook.oldwu.item.ModItems;
 import functionhook.oldwu.particle.ModParticles;
 import functionhook.oldwu.sound.ModSounds;
@@ -45,6 +46,7 @@ public class Old_Wu_java implements ModInitializer {
 		ModItems.initialize();
 		ModAttributes.initialize();
 		ModEffects.initialize();
+		GounaiDrinkTracker.initialize();
 		MaodieObservationTracker.initialize();
 		registerShovelInteract();
 		LOGGER.info("Hello Fabric world!");
