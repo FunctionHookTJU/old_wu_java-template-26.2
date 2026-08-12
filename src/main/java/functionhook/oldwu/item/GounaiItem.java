@@ -16,6 +16,7 @@ import net.minecraft.world.item.PotionItem;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.Level;
 
+import functionhook.oldwu.Old_Wu_java;
 import functionhook.oldwu.effect.ModEffects;
 
 /**
@@ -35,6 +36,7 @@ public class GounaiItem extends PotionItem {
 		// 第 3 次饮用后的第 4 次饮用：按现实世界时间冷却，冷却期间无法开始饮用
 		if (player instanceof ServerPlayer serverPlayer && GounaiDrinkTracker.isFourthDrinkOnCooldown(serverPlayer)) {
 			long left = GounaiDrinkTracker.fourthDrinkCooldownSecondsLeft(serverPlayer);
+			Old_Wu_java.LOGGER.info("[GounaiItem] {} blocked by cooldown, left {}s", serverPlayer.getName().getString(), left);
 			serverPlayer.sendOverlayMessage(Component.literal("野生狗奶冷却中，剩余 " + left + " 秒"));
 			return InteractionResult.FAIL;
 		}

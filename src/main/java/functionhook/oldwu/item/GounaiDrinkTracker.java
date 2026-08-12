@@ -149,6 +149,7 @@ public final class GounaiDrinkTracker {
 	public static void onDrink(ServerPlayer player) {
 		int count = player.getAttachedOrElse(DRINK_COUNT, 0) + 1;
 		player.setAttached(DRINK_COUNT, count);
+		Old_Wu_java.LOGGER.info("[GounaiDrink] {} drank milk, count is now {}", player.getName().getString(), count);
 
 		MinecraftServer server = ((ServerLevel) player.level()).getServer();
 		if (count == 2) {
@@ -204,6 +205,7 @@ public final class GounaiDrinkTracker {
 	private static void teleportToHeatDeath(ServerPlayer player, MinecraftServer server) {
 		ServerLevel heatDeathLevel = server.getLevel(HEAT_DEATH);
 		if (heatDeathLevel == null) {
+			Old_Wu_java.LOGGER.error("[GounaiDrink] Heat death level {} not loaded, cannot teleport!", HEAT_DEATH);
 			return;
 		}
 		if (player.getRespawnConfig() != null) {
