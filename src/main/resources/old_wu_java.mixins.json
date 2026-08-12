@@ -5,6 +5,8 @@
 	"mixins": [
 		"AbstractThrownPotionMixin",
 		"CatMixin",
+		"EffectCommandsMixin",
+		"EternalEffectMixin",
 		"LivingEntityMixin",
 		"MobMixin",
 		"WolfMixin"

@@ -1,0 +1,12 @@
+{
+  "type": "old_wu_java:heat_death",
+  "generator": {
+    "type": "minecraft:flat",
+    "settings": {
+      "biome": "old_wu_java:heat_death",
+      "features": false,
+      "lakes": false,
+      "layers": []
+    }
+  }
+}

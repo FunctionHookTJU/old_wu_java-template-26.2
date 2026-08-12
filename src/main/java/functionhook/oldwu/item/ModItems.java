@@ -48,11 +48,11 @@ public final class ModItems {
 
 	public static final Item CHUNQIU_CHANG = register(
 		CHUNQIU_CHANG_KEY,
-		Item::new,
+		ChunqiuChangItem::new,
 		new Item.Properties()
 			.stacksTo(64)
 			.food(
-				new FoodProperties.Builder().nutrition(6).saturationModifier(0.5F).build(),
+				new FoodProperties.Builder().nutrition(6).saturationModifier(0.5F).alwaysEdible().build(),
 				Consumables.defaultFood()
 					.onConsume(
 						new ApplyStatusEffectsConsumeEffect(
@@ -63,6 +63,10 @@ public final class ModItems {
 						)
 					)
 					.build()
+			)
+			.component(
+				DataComponents.LORE,
+				new ItemLore(List.of(Component.literal("生产日期：2018/1/1"), Component.literal("保质期：2008/1/1")))
 			)
 	);
 

@@ -1,0 +1,18 @@
+{
+  "feature": "old_wu_java:heat_death_bedrock",
+  "placement": [
+    {
+      "type": "minecraft:fixed_placement",
+      "positions": [
+        [
+          0,
+          0,
+          0
+        ]
+      ]
+    },
+    {
+      "type": "minecraft:biome"
+    }
+  ]
+}

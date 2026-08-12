@@ -18,6 +18,7 @@ import functionhook.oldwu.attribute.ModAttributes;
 import functionhook.oldwu.block.ModBlocks;
 import functionhook.oldwu.cat.CatMatingLogic;
 import functionhook.oldwu.cat.GoodCatLogic;
+import functionhook.oldwu.effect.ModEffects;
 import functionhook.oldwu.entity.ModEntityTypes;
 import functionhook.oldwu.item.ModItems;
 import functionhook.oldwu.particle.ModParticles;
@@ -43,6 +44,7 @@ public class Old_Wu_java implements ModInitializer {
 		ModBlocks.initialize();
 		ModItems.initialize();
 		ModAttributes.initialize();
+		ModEffects.initialize();
 		MaodieObservationTracker.initialize();
 		registerShovelInteract();
 		LOGGER.info("Hello Fabric world!");
