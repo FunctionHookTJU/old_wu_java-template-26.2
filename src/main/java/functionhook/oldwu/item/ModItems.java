@@ -39,7 +39,7 @@ public final class ModItems {
 			.stacksTo(64)
 			.component(DataComponents.POTION_CONTENTS, PotionContents.EMPTY)
 			.component(DataComponents.CONSUMABLE, Consumables.DEFAULT_DRINK)
-			.component(DataComponents.FOOD, new FoodProperties.Builder().nutrition(6).saturationModifier(0.5F).build())
+			.component(DataComponents.FOOD, new FoodProperties.Builder().nutrition(6).saturationModifier(0.5F).alwaysEdible().build())
 			.component(
 				DataComponents.LORE,
 				new ItemLore(List.of(Component.literal("保质期：永久"), Component.literal("就连时间也惧怕它的存在")))

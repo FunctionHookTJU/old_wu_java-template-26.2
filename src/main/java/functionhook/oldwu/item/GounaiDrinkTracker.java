@@ -102,18 +102,24 @@ public final class GounaiDrinkTracker {
 	 */
 	public static void onChunqiuChang(ServerPlayer player) {
 		player.setAttached(DRINK_COUNT, 0);
-		if (player.getAttachedOrElse(TRAPPED, false)) {
-			ServerPlayer.RespawnConfig saved = player.getAttached(SAVED_RESPAWN);
-			if (saved != null) {
-				player.setRespawnPosition(saved, true);
-				player.removeAttached(SAVED_RESPAWN);
-			} else {
-				// 原重生点为空（从未设置过床/重生点），还原为主世界默认出生点
-				player.setRespawnPosition(null, false);
-			}
-			player.setAttached(TRAPPED, false);
+		boolean inHeatDeath = player.level().dimension().equals(HEAT_DEATH);
+
+		ServerPlayer.RespawnConfig saved = player.getAttached(SAVED_RESPAWN);
+		ServerPlayer.RespawnConfig current = player.getRespawnConfig();
+		boolean respawnInHeatDeath = current != null && current.respawnData().dimension().equals(HEAT_DEATH);
+
+		if (saved != null) {
+			// 有暂存备份：还原主世界重生点
+			player.setRespawnPosition(saved, true);
+			player.removeAttached(SAVED_RESPAWN);
+		} else if (respawnInHeatDeath || (inHeatDeath && player.getAttachedOrElse(TRAPPED, false))) {
+			// 无备份（原重生点为空或旧档迁移）但曾/正被热寂锁定：清空热寂重生点，
+			// 回到主世界默认出生点
+			player.setRespawnPosition(null, false);
 		}
-		if (!player.level().dimension().equals(HEAT_DEATH)) {
+		player.setAttached(TRAPPED, false);
+
+		if (!inHeatDeath) {
 			return;
 		}
 		MinecraftServer server = ((ServerLevel) player.level()).getServer();
