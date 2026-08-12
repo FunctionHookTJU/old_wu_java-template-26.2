@@ -2,8 +2,10 @@ package functionhook.oldwu.cat;
 
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 import net.minecraft.core.particles.DustParticleOptions;
@@ -18,12 +20,14 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.ai.attributes.Attributes;
+import net.minecraft.world.entity.ai.goal.WrappedGoal;
 import net.minecraft.world.entity.animal.feline.Cat;
 import net.minecraft.world.entity.decoration.ArmorStand;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.phys.AABB;
 import net.minecraft.world.phys.Vec3;
 
+import functionhook.oldwu.accessor.AiGoalsHolder;
 import functionhook.oldwu.accessor.MobTargetAccessor;
 import functionhook.oldwu.audio.CatAudio;
 import functionhook.oldwu.entity.ModEntityTypes;
@@ -208,7 +212,8 @@ public final class MaodieLogic {
 	}
 
 	/**
-	 * 首次变为 maodie 时：提升血量上限至 325、补满血，并清空原版 AI 目标，
+	 * 首次变为 maodie 时：提升血量上限至 325、补满血，并清空原版 AI 目标
+	 * （先暂存到 {@link AiGoalsHolder}，改名恢复时再重新添加），
 	 * 保证 maodie 只执行本逻辑（仍保留导航/移动能力）。
 	 */
 	private static void initIfNeeded(Cat cat) {
@@ -225,13 +230,38 @@ public final class MaodieLogic {
 			cat.refreshDimensions();
 		}
 
-		if (!cat.getGoalSelector().getAvailableGoals().isEmpty()) {
+		AiGoalsHolder holder = (AiGoalsHolder) (Object) cat;
+		if (holder.oldwu_getSavedAiGoals() == null && !cat.getGoalSelector().getAvailableGoals().isEmpty()) {
+			MobTargetAccessor targetAccessor = (MobTargetAccessor) (Object) cat;
+			holder.oldwu_setSavedAiGoals(new HashSet<>(cat.getGoalSelector().getAvailableGoals()));
+			holder.oldwu_setSavedAiTargetGoals(new HashSet<>(targetAccessor.oldwu_getTargetSelector().getAvailableGoals()));
 			cat.getGoalSelector().removeAllGoals(goal -> true);
+			targetAccessor.oldwu_getTargetSelector().removeAllGoals(goal -> true);
 		}
-		MobTargetAccessor accessor = (MobTargetAccessor) (Object) cat;
-		if (!accessor.oldwu_getTargetSelector().getAvailableGoals().isEmpty()) {
-			accessor.oldwu_getTargetSelector().removeAllGoals(goal -> true);
+	}
+
+	/**
+	 * 不再是被命名为 maodie 的猫时：把暂存的原版 AI 目标（goalSelector/targetSelector）重新添加回去，
+	 * 恢复普通猫的全部原版行为（游荡/看向/坐下等）。幂等：无暂存则直接返回。
+	 */
+	public static void restoreAiIfNeeded(Cat cat) {
+		AiGoalsHolder holder = (AiGoalsHolder) (Object) cat;
+		Set<WrappedGoal> goals = holder.oldwu_getSavedAiGoals();
+		if (goals == null) {
+			return;
 		}
+		for (WrappedGoal wrapped : goals) {
+			cat.getGoalSelector().addGoal(wrapped.getPriority(), wrapped.getGoal());
+		}
+		Set<WrappedGoal> targetGoals = holder.oldwu_getSavedAiTargetGoals();
+		if (targetGoals != null) {
+			MobTargetAccessor targetAccessor = (MobTargetAccessor) (Object) cat;
+			for (WrappedGoal wrapped : targetGoals) {
+				targetAccessor.oldwu_getTargetSelector().addGoal(wrapped.getPriority(), wrapped.getGoal());
+			}
+		}
+		holder.oldwu_setSavedAiGoals(null);
+		holder.oldwu_setSavedAiTargetGoals(null);
 	}
 
 	private static void extendHaqi(Cat cat, int ticks) {

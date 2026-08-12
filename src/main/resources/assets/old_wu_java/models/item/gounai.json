@@ -1,0 +1,60 @@
+{
+  "textures": {
+    "1": "old_wu_java:item/gounai_bottom",
+    "2": "old_wu_java:item/gounai_back",
+    "3": "old_wu_java:item/gounai_left",
+    "4": "old_wu_java:item/gounai_right",
+    "5": "old_wu_java:item/gounai_top",
+    "6": "old_wu_java:item/gounai_front",
+    "particle": "old_wu_java:item/gounai_front"
+  },
+  "elements": [
+    {
+      "from": [2, 0, 4],
+      "to": [14, 18, 12],
+      "rotation": {"angle": 0, "axis": "y", "origin": [7, 0, 7]},
+      "faces": {
+        "north": {"uv": [2.97872, 0, 13.01139, 16], "texture": "#6"},
+        "east": {"uv": [4.50597, 0, 11.3222, 16], "texture": "#3"},
+        "south": {"uv": [2.95444, 0, 12.9976, 16], "texture": "#2"},
+        "west": {"uv": [4.79227, 0, 11.32367, 16], "texture": "#4"},
+        "up": {"uv": [0, 3.84733, 16, 11.96947], "texture": "#5"},
+        "down": {"uv": [0, 3.46768, 16, 12.44106], "texture": "#1"}
+      }
+    }
+  ],
+  "display": {
+    "thirdperson_righthand": {
+      "translation": [0, 1.5, 0],
+      "scale": [0.5, 0.5, 0.5]
+    },
+    "thirdperson_lefthand": {
+      "translation": [0, 1.5, 0],
+      "scale": [0.5, 0.5, 1]
+    },
+    "firstperson_righthand": {
+      "rotation": [0, -30, 0],
+      "translation": [0, 5, 0],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    "firstperson_lefthand": {
+      "rotation": [0, -30, 0],
+      "translation": [0, 5, 0],
+      "scale": [0.4, 0.4, 0.4]
+    },
+    "ground": {
+      "scale": [0.5, 0.5, 0.5]
+    },
+    "gui": {
+      "rotation": [14.22, 29.03, 0.6],
+      "translation": [0, -0.75, 0],
+      "scale": [0.7, 0.7, 0.7]
+    },
+    "head": {
+      "translation": [0, 13, 0]
+    },
+    "fixed": {
+      "scale": [0.7, 0.7, 0.7]
+    }
+  }
+}

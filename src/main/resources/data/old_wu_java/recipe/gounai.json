@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "A": "minecraft:dragon_head",
+    "B": "minecraft:clock",
+    "C": "minecraft:ender_eye",
+    "D": "minecraft:dragon_egg",
+    "E": "old_wu_java:dagoujiao",
+    "F": "minecraft:nether_star",
+    "M": "minecraft:milk_bucket"
+  },
+  "pattern": [
+    "ABC",
+    "DEF",
+    "MMM"
+  ],
+  "result": {
+    "id": "old_wu_java:gounai"
+  }
+}
