@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "f": "#minecraft:fishes",
+    "b": "minecraft:bone",
+    "i": "minecraft:iron_ingot"
+  },
+  "pattern": [
+    "ffb",
+    "iii"
+  ],
+  "result": {
+    "id": "old_wu_java:catfood1"
+  }
+}

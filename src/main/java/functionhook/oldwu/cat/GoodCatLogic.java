@@ -108,22 +108,6 @@ public final class GoodCatLogic {
 	}
 
 	/**
-	 * 已驯服猫血量上限：绝世好猫 40、普通猫 25（幂等，首次变化补满血）。
-	 * 已驯服猫好猫值 ≥50，不可能是键帽/坏猫，不会与键帽加成冲突。
-	 */
-	public static void applyTamedBonuses(Cat cat) {
-		if (!cat.isTame()) {
-			return;
-		}
-		double target = isPeerless(cat) ? TAMED_PEERLESS_MAX_HEALTH : TAMED_NORMAL_MAX_HEALTH;
-		var maxHealth = cat.getAttribute(Attributes.MAX_HEALTH);
-		if (maxHealth != null && maxHealth.getBaseValue() != target) {
-			maxHealth.setBaseValue(target);
-			cat.setHealth(cat.getMaxHealth());
-		}
-	}
-
-	/**
 	 * 老吴撼地掌攻击类伤害：已驯服猫 = 好猫值 * 0.15；未驯服猫 = (100 - 好猫值) * 0.1。
 	 */
 	public static float palmDamage(Cat cat) {

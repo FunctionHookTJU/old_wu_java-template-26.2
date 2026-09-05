@@ -10,14 +10,16 @@ import net.minecraft.util.Mth;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.animal.feline.Cat;
 
+import functionhook.oldwu.cat.CatLeveling;
 import functionhook.oldwu.cat.GoodCatLogic;
 
 /**
  * 猫信息 HUD：当玩家准星看向一只猫时，在屏幕中央偏左显示：
  * <ul>
+ *   <li>等级与当前经验（Lv X (exp/升级所需)）</li>
  *   <li>好猫值及类型（键帽/坏猫/普通猫/绝世好猫）</li>
- *   <li>血量上限</li>
- *   <li>老吴撼地掌攻击伤害 ({@code (100-好猫值)*0.1})</li>
+ *   <li>血量上限（受等级与好猫值影响）</li>
+ *   <li>老吴撼地掌攻击伤害（等级 + 好猫值加成）</li>
  *   <li>恐吓类 / 攻击类概率（恐吓 = 好猫值%，攻击 = 100-好猫值%）</li>
  * </ul>
  *
@@ -47,10 +49,15 @@ public final class CatInfoHud {
 
 		int value = Mth.clamp(GoodCatLogic.getGoodValue(cat), 0, GoodCatLogic.MAX_VALUE);
 
+		int level = CatLeveling.getLevel(cat);
+		int exp = CatLeveling.getExp(cat);
+		int expToNext = CatLeveling.expToNext(level);
+
 		List<String> lines = new ArrayList<>();
+		lines.add(String.format("Lv %d (%d/%d)", level, exp, expToNext));
 		lines.add("好猫值: " + value + " (" + typeName(value) + ")");
 		lines.add("血量上限: " + Mth.floor(cat.getMaxHealth()));
-		lines.add(String.format("撼地掌伤害: %.1f", GoodCatLogic.palmDamage(cat)));
+		lines.add(String.format("撼地掌伤害: %.1f", CatLeveling.palmDamage(cat)));
 		// 已驯服猫恐吓固定 10%（攻击 90%）；未驯服按好猫值
 		int intimidate = cat.isTame()
 			? Math.round(GoodCatLogic.TAMED_INTIMIDATE_CHANCE * 100)

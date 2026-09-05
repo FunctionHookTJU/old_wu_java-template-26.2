@@ -11,6 +11,7 @@ import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 import functionhook.oldwu.Old_Wu_java;
+import functionhook.oldwu.cat.CatMatingLogic;
 import functionhook.oldwu.cat.CatPartners;
 import functionhook.oldwu.cat.CatState;
 
@@ -30,10 +31,18 @@ public abstract class AbstractThrownPotionMixin {
 				continue;
 			}
 
+			// maodie 使用专属 Boss 逻辑，不应被水瓶的舔毛状态覆盖；
+			// 否则其会卡在 GROOMING 而无法退出（maodie 的 tick 分支直接返回）。
+			if (CatMatingLogic.isMaodie(cat)) {
+				continue;
+			}
+
 			CatPartners.setGroomingTimer(cat, 100);
 			CatPartners.setBattlePeaceTimer(cat, 600);
 			CatPartners.setState(cat, CatState.GROOMING);
 			CatPartners.setPartner(cat, null);
+			// 进入舔毛状态应取消坐下，否则坐下猫会被 tick 早期坐下分支拦截而卡在 GROOMING。
+			cat.setOrderedToSit(false);
 			cat.getNavigation().stop();
 			triggeredCats++;
 

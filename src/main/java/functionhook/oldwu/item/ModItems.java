@@ -29,6 +29,10 @@ public final class ModItems {
 	public static final ResourceKey<Item> DAGOUJIAO_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("dagoujiao"));
 	public static final ResourceKey<Item> GOUNAI_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("gounai"));
 	public static final ResourceKey<Item> CHUNQIU_CHANG_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("chunqiu_chang"));
+	public static final ResourceKey<Item> CATFOOD1_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("catfood1"));
+	public static final ResourceKey<Item> CATFOOD2_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("catfood2"));
+	public static final ResourceKey<Item> CATFOOD3_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("catfood3"));
+	public static final ResourceKey<Item> CATFOOD_CREATE_KEY = ResourceKey.create(Registries.ITEM, Old_Wu_java.id("catfood_create"));
 
 	public static final Item PAPER_ROLL = register(PAPER_ROLL_KEY, PaperRollItem::new, new Item.Properties().stacksTo(67));
 	public static final Item DAGOUJIAO = register(DAGOUJIAO_KEY, Item::new, new Item.Properties().stacksTo(64));
@@ -70,6 +74,43 @@ public final class ModItems {
 			)
 	);
 
+	public static final Item CATFOOD1 = register(
+		CATFOOD1_KEY,
+		p -> new CatFoodItem(p, CatFoodItem.FoodType.NORMAL),
+		new Item.Properties().stacksTo(64)
+			.component(DataComponents.LORE, new ItemLore(List.of(
+				Component.literal("喂食已驯服的猫"),
+				Component.literal("回复 6 点生命 · 获得 200 点经验")
+			)))
+	);
+	public static final Item CATFOOD2 = register(
+		CATFOOD2_KEY,
+		p -> new CatFoodItem(p, CatFoodItem.FoodType.ADVANCED),
+		new Item.Properties().stacksTo(64)
+			.component(DataComponents.LORE, new ItemLore(List.of(
+				Component.literal("喂食已驯服的猫"),
+				Component.literal("回复 12 点生命 · 获得 550 点经验")
+			)))
+	);
+	public static final Item CATFOOD3 = register(
+		CATFOOD3_KEY,
+		p -> new CatFoodItem(p, CatFoodItem.FoodType.SUPREME),
+		new Item.Properties().stacksTo(64)
+			.component(DataComponents.LORE, new ItemLore(List.of(
+				Component.literal("喂食已驯服的猫"),
+				Component.literal("回复 20 点生命 · 获得 1500 点经验")
+			)))
+	);
+	public static final Item CATFOOD_CREATE = register(
+		CATFOOD_CREATE_KEY,
+		p -> new CatFoodItem(p, CatFoodItem.FoodType.CREATIVE),
+		new Item.Properties().stacksTo(64)
+			.component(DataComponents.LORE, new ItemLore(List.of(
+				Component.literal("喂食已驯服的猫"),
+				Component.literal("回复 10000 点生命 · 经验无限（直接升满级）")
+			)))
+	);
+
 	// 模组专属创造模式标签页
 	public static final ResourceKey<CreativeModeTab> MOD_TAB_KEY = ResourceKey.create(Registries.CREATIVE_MODE_TAB, Old_Wu_java.id("old_wu"));
 
@@ -84,6 +125,10 @@ public final class ModItems {
 				output.accept(DAGOUJIAO);
 				output.accept(GOUNAI);
 				output.accept(CHUNQIU_CHANG);
+				output.accept(CATFOOD1);
+				output.accept(CATFOOD2);
+				output.accept(CATFOOD3);
+				output.accept(CATFOOD_CREATE);
 				output.accept(ModBlocks.MIRROR);
 			})
 			.build()

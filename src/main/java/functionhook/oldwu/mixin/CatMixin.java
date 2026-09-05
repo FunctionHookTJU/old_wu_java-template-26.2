@@ -8,6 +8,8 @@ import net.minecraft.core.UUIDUtil;
 import net.minecraft.network.syncher.SynchedEntityData;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.sounds.SoundEvent;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.damagesource.DamageSource;
@@ -31,7 +33,9 @@ import functionhook.oldwu.accessor.AiGoalsHolder;
 import functionhook.oldwu.cat.CatMatingLogic;
 import functionhook.oldwu.cat.CatPartners;
 import functionhook.oldwu.cat.CatState;
+import functionhook.oldwu.cat.CatLeveling;
 import functionhook.oldwu.cat.GoodCatLogic;
+import functionhook.oldwu.item.CatFoodItem;
 
 @Mixin(Cat.class)
 public abstract class CatMixin implements AiGoalsHolder {
@@ -92,6 +96,8 @@ public abstract class CatMixin implements AiGoalsHolder {
 		entityData.define(CatPartners.HITGROUND_COOLDOWN, 0);
 		entityData.define(CatPartners.HITGROUND_ANIM_TICK, 0);
 		entityData.define(CatPartners.WAS_MAODIE, false);
+		entityData.define(CatPartners.LEVEL, CatLeveling.BASE_LEVEL);
+		entityData.define(CatPartners.EXP, 0);
 	}
 
 
@@ -146,6 +152,33 @@ public abstract class CatMixin implements AiGoalsHolder {
 		}
 	}
 
+	// 等级持久化（未升级即 Lv1 时仍存储，保证数值稳定）
+	@Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
+	private void oldwu_saveLevel(ValueOutput output, CallbackInfo ci) {
+		Cat self = (Cat) (Object) this;
+		output.store("oldwu_level", Codec.INT, CatPartners.getLevel(self));
+	}
+
+	@Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
+	private void oldwu_loadLevel(ValueInput input, CallbackInfo ci) {
+		Cat self = (Cat) (Object) this;
+		int level = input.read("oldwu_level", Codec.INT).orElse(CatLeveling.BASE_LEVEL);
+		CatLeveling.setLevel(self, level);
+	}
+
+	// 经验持久化
+	@Inject(method = "addAdditionalSaveData", at = @At("TAIL"))
+	private void oldwu_saveExp(ValueOutput output, CallbackInfo ci) {
+		Cat self = (Cat) (Object) this;
+		output.store("oldwu_exp", Codec.INT, CatPartners.getExp(self));
+	}
+
+	@Inject(method = "readAdditionalSaveData", at = @At("TAIL"))
+	private void oldwu_loadExp(ValueInput input, CallbackInfo ci) {
+		Cat self = (Cat) (Object) this;
+		CatLeveling.setExp(self, input.read("oldwu_exp", Codec.INT).orElse(0));
+	}
+
 	/**
 	 * 驯服拦截与好猫值提升：
 	 * <ul>
@@ -157,16 +190,71 @@ public abstract class CatMixin implements AiGoalsHolder {
 	private void oldwu_interceptTame(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
 		Cat self = (Cat) (Object) this;
 		this.oldwuWasTameBeforeInteract = self.isTame();
-		if (self.isTame()) {
-			return;
-		}
 		ItemStack stack = player.getItemInHand(hand);
-		if (!stack.is(Items.COD) && !stack.is(Items.SALMON)) {
+
+		// 猫粮：仅已驯服猫可喂（回血 + 大量经验）；未驯服/键帽/坏猫无法喂食而放行
+		if (stack.getItem() instanceof CatFoodItem catFood) {
+			if (!self.isTame()) {
+				cir.setReturnValue(InteractionResult.PASS);
+				return;
+			}
+			if (self.level().isClientSide()) {
+				cir.setReturnValue(InteractionResult.SUCCESS);
+				return;
+			}
+			catFood.feed(self);
+			consumeFish(player, stack);
+			playEatSound(self);
+			cir.setReturnValue(InteractionResult.SUCCESS);
 			return;
 		}
+
+		int fishExp = fishExp(stack);
+		if (fishExp <= 0) {
+			// 不是鱼（鳕鱼/鲑鱼），走原版逻辑
+			return;
+		}
+
+		// 已驯服猫：喂鱼获得经验（仅服务端处理；客户端返回 SUCCESS 触发挥臂）
+		if (self.isTame()) {
+			if (self.level().isClientSide()) {
+				cir.setReturnValue(InteractionResult.SUCCESS);
+				return;
+			}
+			CatLeveling.addExp(self, fishExp);
+			consumeFish(player, stack);
+			playEatSound(self);
+			cir.setReturnValue(InteractionResult.SUCCESS);
+			return;
+		}
+
+		// 未驯服猫：好猫值 <40（坏猫/键帽）无法驯服 → 不加经验，直接放行不消耗
 		if (GoodCatLogic.getGoodValue(self) < GoodCatLogic.BAD_THRESHOLD) {
 			cir.setReturnValue(InteractionResult.PASS);
 		}
+	}
+
+	/** 判断手持物品是否为可投喂的鱼，并返回对应经验值（非鱼返回 0）。 */
+	private static int fishExp(ItemStack stack) {
+		if (stack.is(Items.COD) || stack.is(Items.SALMON)) {
+			return CatLeveling.RAW_FISH_EXP;
+		}
+		if (stack.is(Items.COOKED_COD) || stack.is(Items.COOKED_SALMON)) {
+			return CatLeveling.COOKED_FISH_EXP;
+		}
+		return 0;
+	}
+
+	/** 消耗一条鱼（创造模式不消耗）。 */
+	private static void consumeFish(Player player, ItemStack stack) {
+		if (!player.getAbilities().instabuild) {
+			stack.shrink(1);
+		}
+	}
+
+	/** 播放吃鱼音效。 */
+	private static void playEatSound(Cat cat) {
+		cat.level().playSound(null, cat, SoundEvents.GENERIC_EAT.value(), cat.getSoundSource(), 1.0F, 1.0F);
 	}
 
 	@Inject(method = "mobInteract", at = @At("TAIL"))

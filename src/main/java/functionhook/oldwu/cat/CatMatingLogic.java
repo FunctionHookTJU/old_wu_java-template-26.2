@@ -100,7 +100,7 @@ public final class CatMatingLogic {
 			ensureRetainedMaodieHealth(cat);
 		} else {
 			GoodCatLogic.applyKeycapBonuses(cat);
-			GoodCatLogic.applyTamedBonuses(cat);
+			CatLeveling.applyStatBonuses(cat);
 		}
 
 		int peaceTimer = CatPartners.getBattlePeaceTimer(cat);
@@ -121,6 +121,12 @@ public final class CatMatingLogic {
 			// 不再是被命名为 "maodie" 的猫时，清理残留的 Boss 血条，并恢复被暂存的原版 AI 目标
 			MaodieLogic.removeBossBar(cat);
 			MaodieLogic.restoreAiIfNeeded(cat);
+		}
+
+		// 进入任何非 COMMON 状态（压扁/街舞/配对/战斗/回血/舔毛/撼地掌）都会自动取消坐下：
+		// 避免坐下分支在前拦截，导致坐下猫卡在这些状态里无法退出。
+		if (CatPartners.getState(cat) != CatState.COMMON && cat.isOrderedToSit()) {
+			cat.setOrderedToSit(false);
 		}
 
 		if (cat.isOrderedToSit()) {
@@ -212,8 +218,8 @@ public final class CatMatingLogic {
 
 		Optional<UUID> partnerId = CatPartners.getPartner(cat);
 		if (partnerId.isPresent()) {
-			// 范围内出现 maodie 时，普通猫停止互相配对，切换目标到 maodie
-			if (retargetToMaodie(cat, partnerId.get())) {
+			// 范围内出现 maodie 时，猫停止互相配对，转而以撼地掌战斗 maodie
+			if (retargetToMaodie(level, cat, partnerId.get())) {
 				return;
 			}
 
@@ -221,6 +227,12 @@ public final class CatMatingLogic {
 			if (partner == null) {
 				CatPartners.setPartner(cat, null);
 				transitionTo(cat, CatState.COMMON);
+				return;
+			}
+
+			// 配对战斗过程中：若双方都已驯服，则自动解除配对（驯服猫不再互相配对/战斗）
+			if (partner instanceof Cat other && cat.isTame() && other.isTame()) {
+				breakPair(cat, other);
 				return;
 			}
 
@@ -346,6 +358,13 @@ public final class CatMatingLogic {
 	}
 
 	private static void tryAngryNearby(ServerLevel level, Cat cat) {
+		// 猫不与 maodie 配对：遇到 maodie 优先用老吴撼地掌战斗
+		Cat maodie = findAttackableMaodie(cat);
+		if (maodie != null) {
+			chaseAndStrikePalm(level, cat, maodie);
+			return;
+		}
+
 		findCandidate(cat).ifPresentOrElse(
 			other -> chaseAndPair(cat, other),
 			() -> {
@@ -456,12 +475,13 @@ public final class CatMatingLogic {
 	}
 
 	/**
-	 * 普通猫已与另一只普通猫配对时，若索敌范围内出现 maodie，则解除原配对并转向 maodie。
+	 * 猫已与另一只猫配对/战斗时，若索敌范围内出现 maodie，则解除原配对并转向对 maodie 用撼地掌战斗
+	 * （不再与 maodie 进入配对）。
 	 *
 	 * @return 本 tick 是否已由 maodie 目标接管
 	 */
-	private static boolean retargetToMaodie(Cat cat, UUID currentPartnerId) {
-		Cat maodie = findNearbyMaodie(cat);
+	private static boolean retargetToMaodie(ServerLevel level, Cat cat, UUID currentPartnerId) {
+		Cat maodie = findAttackableMaodie(cat);
 		if (maodie == null || maodie.getUUID().equals(currentPartnerId)) {
 			return false;
 		}
@@ -472,17 +492,13 @@ public final class CatMatingLogic {
 			transitionTo(other, CatState.COMMON);
 		}
 		CatPartners.setPartner(cat, null);
-		chaseAndPair(cat, maodie);
+		// 对 maodie 用老吴撼地掌战斗（而非进入配对）
+		chaseAndStrikePalm(level, cat, maodie);
 		return true;
 	}
 
 	private static Optional<Cat> findCandidate(Cat cat) {
-		// 索敌范围内存在 maodie 时，普通猫停止互相配对，优先以 maodie 为目标
-		Cat maodie = findNearbyMaodie(cat);
-		if (maodie != null) {
-			return Optional.of(maodie);
-		}
-
+		// 猫不把 maodie 作为配对候选（遇到 maodie 走撼地掌战斗，见 tryAngryNearby / retargetToMaodie）。
 		// 驯服的猫不会主动进入配对/战斗状态（含驯服猫互相之间）；
 		// 只有未驯服的猫会挑衅发起配对/战斗
 		if (cat.isTame()) {
@@ -506,15 +522,34 @@ public final class CatMatingLogic {
 	}
 
 	/**
-	 * 索敌范围内是否存在被命名为 "maodie" 的猫。
+	 * 猫是否具备攻击 maodie 的资格：未驯服绝世好猫不攻击（与 {@link #tryAttackTarget} 一致）；
+	 * 其余（已驯服猫、未驯服坏猫/键帽/普通猫）都会用撼地掌战斗 maodie。
 	 */
-	private static Cat findNearbyMaodie(Cat cat) {
+	private static boolean canFightMaodie(Cat cat) {
+		return cat.isTame() || !GoodCatLogic.isPeerless(cat);
+	}
+
+	/**
+	 * 索敌范围内存在<b>可攻击</b>的 maodie（16 格、非自身、存活、视线可见、且猫具备攻击资格）。
+	 * 用于让猫不与 maodie 配对、而是用撼地掌战斗。
+	 */
+	private static Cat findAttackableMaodie(Cat cat) {
+		if (!canFightMaodie(cat)) {
+			return null;
+		}
 		List<Cat> maodies = cat.level().getEntitiesOfClass(
 			Cat.class,
 			new AABB(cat.blockPosition()).inflate(ATTRACT_RANGE),
-			candidate -> candidate != cat && isMaodie(candidate) && !candidate.isRemoved()
+			candidate -> candidate != cat
+				&& isMaodie(candidate)
+				&& !candidate.isRemoved()
+				&& cat.distanceToSqr(candidate) <= PLAYER_RANGE * PLAYER_RANGE
+				&& cat.hasLineOfSight(candidate)
 		);
-		return maodies.isEmpty() ? null : maodies.get(cat.getRandom().nextInt(maodies.size()));
+		if (maodies.isEmpty()) {
+			return null;
+		}
+		return maodies.stream().min(Comparator.comparingDouble(cat::distanceToSqr)).orElse(maodies.get(0));
 	}
 
 	private static void pairingTick(Cat cat, LivingEntity partner) {
@@ -536,6 +571,28 @@ public final class CatMatingLogic {
 				startBattle(cat, partner);
 			}
 		}
+	}
+
+	/**
+	 * 配对战斗过程中若双方都已驯服，则解除配对并回到普通状态。
+	 * <p>驯服猫不再互相配对/战斗（由 {@link #findCandidate} 阻止主动发起），
+	 * 但已在 ANGRY/PAIRING/BATTLE 状态的猫需在此主动中断。
+	 */
+	private static void breakPair(Cat cat, Cat other) {
+		if (CatPartners.getState(cat) == CatState.ANGRY
+				|| CatPartners.getState(cat) == CatState.PAIRING
+				|| CatPartners.getState(cat) == CatState.BATTLE) {
+			transitionTo(cat, CatState.COMMON);
+		}
+		if (CatPartners.getState(other) == CatState.ANGRY
+				|| CatPartners.getState(other) == CatState.PAIRING
+				|| CatPartners.getState(other) == CatState.BATTLE) {
+			transitionTo(other, CatState.COMMON);
+		}
+		CatPartners.setPartner(cat, null);
+		CatPartners.setPartner(other, null);
+		cat.getNavigation().stop();
+		other.getNavigation().stop();
 	}
 
 	private static void startBattle(Cat cat, LivingEntity partner) {
@@ -585,7 +642,7 @@ public final class CatMatingLogic {
 		} else if (distanceSqr <= STOP_DISTANCE_SQR) {
 			// 仅在贴近范围内攻击，避免无视距离出手；
 			// 使用 generic（带 NO_KNOCKBACK 标签）伤害来源，击退为 0，避免缠斗被弹开。
-			partner.hurtServer(level, cat.damageSources().generic(), ATTACK_DAMAGE);
+			partner.hurtServer(level, cat.damageSources().generic(), ATTACK_DAMAGE * CatLeveling.attackMultiplier(cat));
 			CatAudio.playStateSound(cat, CatState.BATTLE);
 			CatPartners.setAttackCooldown(cat, nextAttackDelay(cat));
 		}
@@ -723,8 +780,16 @@ public final class CatMatingLogic {
 	 * 只保留模组的 recovery 粒子效果。
 	 */
 	private static void applyRecoveryEffects(Cat cat) {
+		// 被驯服的猫回血增强为生命恢复 V（amplifier 4）；未驯服猫维持生命恢复 I（amplifier 0）。
+		int regenAmplifier = cat.isTame() ? 4 : 0;
 		if (!cat.hasEffect(MobEffects.REGENERATION)) {
-			cat.addEffect(new MobEffectInstance(MobEffects.REGENERATION, REGENERATION_DURATION, 0, false, false, false));
+			cat.addEffect(new MobEffectInstance(MobEffects.REGENERATION, REGENERATION_DURATION, regenAmplifier, false, false, false));
+		} else {
+			// 已持有生命恢复效果：若因驯服需增强，则补发更高等级（幂等，防止弱效果残留）
+			var existing = cat.getEffect(MobEffects.REGENERATION);
+			if (existing != null && existing.getAmplifier() < regenAmplifier) {
+				cat.addEffect(new MobEffectInstance(MobEffects.REGENERATION, REGENERATION_DURATION, regenAmplifier, false, false, false));
+			}
 		}
 		if (!cat.hasEffect(MobEffects.SLOWNESS)) {
 			cat.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, REGENERATION_DURATION, 2, false, false, false));
@@ -742,6 +807,10 @@ public final class CatMatingLogic {
 		if (CatPartners.getState(cat) != newState) {
 			CatPartners.setState(cat, newState);
 			CatAudio.playStateSound(cat, newState);
+			// 进入任何非 COMMON 状态都自动取消坐下（坐下分支在 tick 早期会拦截状态处理）。
+			if (newState != CatState.COMMON && cat.isOrderedToSit()) {
+				cat.setOrderedToSit(false);
+			}
 			return true;
 		}
 		return false;
@@ -926,7 +995,7 @@ public final class CatMatingLogic {
 			return;
 		}
 
-		target.hurtServer(level, cat.damageSources().mobAttack(cat), GoodCatLogic.palmDamage(cat));
+		target.hurtServer(level, cat.damageSources().mobAttack(cat), CatLeveling.palmDamage(cat));
 		if (GoodCatLogic.isKeycap(cat) && cat.getRandom().nextFloat() < GoodCatLogic.KEYCAP_WITHER_CHANCE) {
 			target.addEffect(new MobEffectInstance(MobEffects.WITHER, GoodCatLogic.KEYCAP_WITHER_DURATION, 0), cat);
 		}

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "f": "#minecraft:fishes",
+    "b": "minecraft:bone",
+    "d": "minecraft:diamond"
+  },
+  "pattern": [
+    "ffb",
+    "ddd"
+  ],
+  "result": {
+    "id": "old_wu_java:catfood3"
+  }
+}

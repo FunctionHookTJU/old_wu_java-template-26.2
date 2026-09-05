@@ -35,6 +35,10 @@ public final class CatPartners {
 	public static final EntityDataAccessor<Integer> HITGROUND_ANIM_TICK = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	/** 是否曾经被命名为 "maodie"：改名后保留 325 血量。 */
 	public static final EntityDataAccessor<Boolean> WAS_MAODIE = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.BOOLEAN);
+	/** 养成等级（Lv1 起步，仅已驯服猫可升级）。 */
+	public static final EntityDataAccessor<Integer> LEVEL = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
+	/** 当前经验值（0 ~ 升级所需经验）。 */
+	public static final EntityDataAccessor<Integer> EXP = SynchedEntityData.defineId(Cat.class, EntityDataSerializers.INT);
 	private CatPartners() {
 	}
 
@@ -62,7 +66,7 @@ public final class CatPartners {
 	public static void initAccessors() {
 		if (PARTNER_UUID == null || STATE == null || ATTACK_COOLDOWN == null || FLAT_TIMER == null || PAIRING_TIMER == null
 				|| GOOD_VALUE == null || HITGROUND_TIMER == null || HITGROUND_COOLDOWN == null || HITGROUND_ANIM_TICK == null
-				|| WAS_MAODIE == null) {
+				|| WAS_MAODIE == null || LEVEL == null || EXP == null) {
 			throw new IllegalStateException("Cat data accessors not initialized");
 		}
 	}
@@ -81,6 +85,22 @@ public final class CatPartners {
 
 	public static void setGoodValue(Cat cat, int value) {
 		cat.getEntityData().set(GOOD_VALUE, value);
+	}
+
+	public static int getLevel(Cat cat) {
+		return cat.getEntityData().get(LEVEL);
+	}
+
+	public static void setLevel(Cat cat, int value) {
+		cat.getEntityData().set(LEVEL, value);
+	}
+
+	public static int getExp(Cat cat) {
+		return cat.getEntityData().get(EXP);
+	}
+
+	public static void setExp(Cat cat, int value) {
+		cat.getEntityData().set(EXP, value);
 	}
 
 	public static int getHitgroundTimer(Cat cat) {
