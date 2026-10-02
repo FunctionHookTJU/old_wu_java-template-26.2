@@ -43,4 +43,9 @@ replay_*.log
 tmp_cat_models/
 开发进度.md
 .claude/
-.dsh/
+
+# dsh agent 技能目录：整体忽略，但版本移植流程技能纳入版本管理
+.dsh/*
+!.dsh/skills/
+.dsh/skills/*
+!.dsh/skills/minecraft-version-port/
