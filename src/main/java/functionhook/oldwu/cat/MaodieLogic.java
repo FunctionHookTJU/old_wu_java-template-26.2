@@ -281,7 +281,15 @@ public final class MaodieLogic {
 		);
 		float ratio = Math.max(0.0F, Math.min(1.0F, cat.getHealth() / cat.getMaxHealth()));
 		event.setProgress(ratio);
-		for (ServerPlayer player : level.players()) {
+		// 与当前维度的玩家列表同步：离开该维度的玩家必须移除，否则血条会一直挂在他们屏幕上。
+		List<ServerPlayer> present = level.players();
+		Set<ServerPlayer> presentSet = new HashSet<>(present);
+		for (ServerPlayer player : List.copyOf(event.getPlayers())) {
+			if (!presentSet.contains(player)) {
+				event.removePlayer(player);
+			}
+		}
+		for (ServerPlayer player : present) {
 			event.addPlayer(player);
 		}
 	}

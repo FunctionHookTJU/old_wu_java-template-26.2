@@ -84,4 +84,13 @@ public final class CatAudio {
 		}
 		return series[cat.getRandom().nextInt(series.length)];
 	}
+
+	/**
+	 * 清理某只猫的音频节流记录（猫被卸载/移除时调用）。
+	 *
+	 * <p>节流表以猫的 UUID 为键，若从不清理，会随着"见过的猫"数量只增不减。
+	 */
+	public static void forget(Cat cat) {
+		LAST_PLAY_TICK.remove(cat.getUUID());
+	}
 }

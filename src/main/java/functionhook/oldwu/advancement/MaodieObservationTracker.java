@@ -4,6 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
+import net.fabricmc.fabric.api.entity.event.v1.ServerPlayerEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.resources.Identifier;
@@ -30,7 +31,13 @@ public final class MaodieObservationTracker {
 
 	public static void initialize() {
 		ServerTickEvents.END_SERVER_TICK.register(MaodieObservationTracker::tick);
+		ServerPlayerEvents.LEAVE.register(MaodieObservationTracker::onPlayerLeave);
 		LOGGER.info("Maodie observation tracker initialized");
+	}
+
+	/** 玩家退出时清理其观测状态，避免 {@link #STATES} 随历史玩家数只增不减。 */
+	private static void onPlayerLeave(ServerPlayer player) {
+		STATES.remove(player.getUUID());
 	}
 
 	private static void tick(MinecraftServer server) {

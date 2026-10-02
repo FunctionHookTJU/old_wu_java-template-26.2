@@ -1,6 +1,7 @@
 package functionhook.oldwu;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.fabricmc.fabric.api.event.player.UseEntityCallback;
 
 import net.minecraft.resources.Identifier;
@@ -15,9 +16,11 @@ import org.slf4j.LoggerFactory;
 
 import functionhook.oldwu.advancement.MaodieObservationTracker;
 import functionhook.oldwu.attribute.ModAttributes;
+import functionhook.oldwu.audio.CatAudio;
 import functionhook.oldwu.block.ModBlocks;
 import functionhook.oldwu.cat.CatMatingLogic;
 import functionhook.oldwu.cat.GoodCatLogic;
+import functionhook.oldwu.cat.MaodieLogic;
 import functionhook.oldwu.effect.ModEffects;
 import functionhook.oldwu.entity.ModEntityTypes;
 import functionhook.oldwu.item.GounaiDrinkTracker;
@@ -48,6 +51,7 @@ public class Old_Wu_java implements ModInitializer {
 		ModEffects.initialize();
 		GounaiDrinkTracker.initialize();
 		MaodieObservationTracker.initialize();
+		registerEntityCleanup();
 		registerShovelInteract();
 		LOGGER.info("Hello Fabric world!");
 	}
@@ -69,6 +73,22 @@ public class Old_Wu_java implements ModInitializer {
 				level.playSound(null, cat, SoundEvents.ANVIL_USE, SoundSource.BLOCKS, 1.0F, 1.0F);
 			}
 			return InteractionResult.SUCCESS;
+		});
+	}
+
+	/**
+	 * 实体卸载/移除时的清理：删除音频节流记录、移除残留的 Boss 血条。
+	 *
+	 * <p>Boss 血条原先只在 {@code die()} 时清理，若耄耋是被卸载（玩家走远、区块卸载、换维度）
+	 * 而不是被打死，血条会一直挂在客户端屏幕上直到重登；这里补上这条生命周期路径。
+	 * <p>音频节流表 {@link CatAudio} 以猫的 UUID 为键，若不清理由此只增不减。
+	 */
+	private static void registerEntityCleanup() {
+		ServerEntityEvents.ENTITY_UNLOAD.register((entity, level) -> {
+			if (entity instanceof Cat cat) {
+				CatAudio.forget(cat);
+				MaodieLogic.removeBossBar(cat);
+			}
 		});
 	}
 
