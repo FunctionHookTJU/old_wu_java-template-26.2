@@ -11,6 +11,7 @@ import net.minecraft.world.entity.animal.wolf.Wolf;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.item.enchantment.Enchantments;
+import net.minecraft.util.Prediction;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -80,7 +81,7 @@ public abstract class LivingEntityMixin {
 		}
 
 		for (int i = 0; i < count; i++) {
-			cat.drop(new ItemStack(ModItems.PAPER_ROLL), false, false);
+			cat.drop(new ItemStack(ModItems.PAPER_ROLL), false, Prediction.SERVER_ONLY);
 		}
 	}
 }

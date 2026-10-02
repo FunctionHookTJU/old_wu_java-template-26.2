@@ -48,11 +48,12 @@ public class PaperRollRenderer extends EntityRenderer<PaperRoll, PaperRollRender
 	) {
 		poseStack.pushPose();
 		// 模型已居中于原点、长轴沿 Z，仅需 yaw/pitch 对齐飞行方向（参考 ArrowRenderer）
-		poseStack.mulPose(Axis.YP.rotationDegrees(state.yRot));
-		poseStack.mulPose(Axis.XP.rotationDegrees(state.xRot));
+		// 26.3 移除了 PoseStack.mulPose(Quaternionfc)，改用等价的 rotateDegrees(Axis, float)。
+		poseStack.rotateDegrees(Axis.YP, state.yRot);
+		poseStack.rotateDegrees(Axis.XP, state.xRot);
 		poseStack.scale(0.5F, 0.5F, 0.5F);
 		submitNodeCollector.submitModel(
-			this.model, state, poseStack, TEXTURE, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor, null
+			this.model, state, poseStack, TEXTURE, state.lightCoords, OverlayTexture.NO_OVERLAY, state.outlineColor
 		);
 		poseStack.popPose();
 		super.submit(state, poseStack, submitNodeCollector, camera);

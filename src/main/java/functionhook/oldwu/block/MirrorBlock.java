@@ -1,7 +1,5 @@
 package functionhook.oldwu.block;
 
-import com.mojang.serialization.MapCodec;
-
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.util.RandomSource;
@@ -35,8 +33,6 @@ import net.minecraft.world.phys.shapes.VoxelShape;
  * 无需自定义渲染代码。
  */
 public class MirrorBlock extends HorizontalDirectionalBlock implements SimpleWaterloggedBlock {
-	public static final MapCodec<MirrorBlock> CODEC = simpleCodec(MirrorBlock::new);
-
 	public static final BooleanProperty WATERLOGGED = BlockStateProperties.WATERLOGGED;
 
 	// 选中形状：贴合在墙上的 2 像素厚薄片（面板位于 FACING 的反方向，紧贴墙体）
@@ -48,11 +44,6 @@ public class MirrorBlock extends HorizontalDirectionalBlock implements SimpleWat
 	protected MirrorBlock(BlockBehaviour.Properties properties) {
 		super(properties);
 		this.registerDefaultState(this.defaultBlockState().setValue(FACING, Direction.NORTH).setValue(WATERLOGGED, false));
-	}
-
-	@Override
-	protected MapCodec<? extends HorizontalDirectionalBlock> codec() {
-		return CODEC;
 	}
 
 	@Override

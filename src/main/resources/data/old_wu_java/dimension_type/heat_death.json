@@ -5,6 +5,10 @@
       "can_set_spawn": "never",
       "can_sleep": "never"
     },
+    "minecraft:gameplay/straw_bed_rule": {
+      "can_set_spawn": "never",
+      "can_sleep": "never"
+    },
     "minecraft:visual/ambient_light_color": "#000000",
     "minecraft:visual/fog_color": "#000000",
     "minecraft:visual/sky_color": "#000000"

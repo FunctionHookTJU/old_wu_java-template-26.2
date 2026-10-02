@@ -6,12 +6,10 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "old_wu_java:mirror"
-        }
-      ],
-      "conditions": [
-        {
-          "condition": "minecraft:survives_explosion"
+          "name": "old_wu_java:mirror",
+          "condition": {
+            "type": "minecraft:survives_explosion"
+          }
         }
       ]
     }

@@ -3,6 +3,8 @@ package functionhook.oldwu.mixin;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.animal.feline.Cat;
 import net.minecraft.world.entity.projectile.throwableitemprojectile.AbstractThrownPotion;
+import net.minecraft.world.item.alchemy.PotionContents;
+import net.minecraft.world.item.alchemy.Potions;
 import net.minecraft.world.phys.AABB;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -17,11 +19,22 @@ import functionhook.oldwu.cat.CatState;
 
 @Mixin(AbstractThrownPotion.class)
 public abstract class AbstractThrownPotionMixin {
+	/**
+	 * 水瓶溅射 → 范围内的猫进入舔毛（GROOMING）100 tick、和平 600 tick。
+	 *
+	 * <p>26.3 起原版把 {@code onHitAsWater(ServerLevel)} 删除，水的实体影响逻辑并入
+	 * {@code affectEntitiesAround(ServerLevel, PotionContents)}。这里改挂该方法，并用
+	 * 与 26.2 完全相同的判定（只处理水瓶 {@code Potions.WATER}）保持行为一比一。
+	 */
 	@Inject(
-		method = "onHitAsWater(Lnet/minecraft/server/level/ServerLevel;)V",
+		method = "affectEntitiesAround(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/item/alchemy/PotionContents;)V",
 		at = @At("HEAD")
 	)
-	private void oldwu_triggerGrooming(ServerLevel level, CallbackInfo ci) {
+	private void oldwu_triggerGrooming(ServerLevel level, PotionContents contents, CallbackInfo ci) {
+		if (!contents.is(Potions.WATER)) {
+			return;
+		}
+
 		AbstractThrownPotion potion = (AbstractThrownPotion) (Object) this;
 		AABB splashArea = potion.getBoundingBox().inflate(4.0, 2.0, 4.0);
 		int triggeredCats = 0;

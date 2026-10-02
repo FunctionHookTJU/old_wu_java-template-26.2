@@ -7,8 +7,8 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.entity.animal.feline.Cat;
-import net.minecraft.world.item.ShovelItem;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,9 +54,10 @@ public class Old_Wu_java implements ModInitializer {
 
 	// 用铲子右键猫会立即将其压扁（flat）。
 	// 客户端返回 SUCCESS 触发正常的使用动作（挥臂），服务端进入 flat 并播放铁砧音效。
+	// 26.3 移除了 ShovelItem 等工具类（工具改为纯数据组件），故改用原版 #minecraft:shovels 物品标签判定。
 	private static void registerShovelInteract() {
 		UseEntityCallback.EVENT.register((player, level, hand, entity, hitResult) -> {
-			if (!(entity instanceof Cat cat) || !(player.getItemInHand(hand).getItem() instanceof ShovelItem)) {
+			if (!(entity instanceof Cat cat) || !player.getItemInHand(hand).is(ItemTags.SHOVELS)) {
 				return InteractionResult.PASS;
 			}
 
