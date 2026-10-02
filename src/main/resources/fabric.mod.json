@@ -3,9 +3,9 @@
 	"id": "old_wu_java",
 	"version": "${version}",
 	"name": "Old_Wu_java",
-	"description": "This is an example description! Tell everyone what your mod is about!",
+	"description": "老吴Mod Java版：为原版猫加入完整的行为状态机（配对 / 战斗 / 回血 / 街舞 / 理毛 / 老吴撼地掌）、好猫值与等级养成、耄耋 Boss，并新增纸卷、大狗叫、猫粮、野生狗奶等物品与镜子方块。",
 	"authors": [
-		"Me!"
+		"FunctionHookTJU"
 	],
 	"contact": {
 		"homepage": "https://fabricmc.net/",

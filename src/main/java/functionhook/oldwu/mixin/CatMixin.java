@@ -180,10 +180,11 @@ public abstract class CatMixin implements AiGoalsHolder {
 	}
 
 	/**
-	 * 驯服拦截与好猫值提升：
+	 * 驯服拦截：
 	 * <ul>
 	 *   <li>好猫值 &lt; 40（坏猫/键帽）无法被驯服——喂生鳕鱼/生鲑鱼时直接返回 PASS（不消耗、不挥臂）。</li>
-	 *   <li>本次交互完成驯服时好猫值 +10。</li>
+	 *   <li>猫粮：仅已驯服猫可喂（回血 + 大量经验）。</li>
+	 *   <li>鱼对猫保持原版交互（喂食回血 / 繁殖 / 驯服），不再产生任何经验。</li>
 	 * </ul>
 	 */
 	@Inject(method = "mobInteract", at = @At("HEAD"), cancellable = true)
@@ -209,40 +210,25 @@ public abstract class CatMixin implements AiGoalsHolder {
 			return;
 		}
 
-		int fishExp = fishExp(stack);
-		if (fishExp <= 0) {
+		if (!isFish(stack)) {
 			// 不是鱼（鳕鱼/鲑鱼），走原版逻辑
 			return;
 		}
 
-		// 已驯服猫：喂鱼获得经验（仅服务端处理；客户端返回 SUCCESS 触发挥臂）
-		if (self.isTame()) {
-			if (self.level().isClientSide()) {
-				cir.setReturnValue(InteractionResult.SUCCESS);
-				return;
-			}
-			CatLeveling.addExp(self, fishExp);
-			consumeFish(player, stack);
-			playEatSound(self);
-			cir.setReturnValue(InteractionResult.SUCCESS);
+		// 未驯服猫：好猫值 <40（坏猫/键帽）无法驯服 → 放行不消耗（维持“坏猫不可驯服”规则）
+		if (!self.isTame() && GoodCatLogic.getGoodValue(self) < GoodCatLogic.BAD_THRESHOLD) {
+			cir.setReturnValue(InteractionResult.PASS);
 			return;
 		}
 
-		// 未驯服猫：好猫值 <40（坏猫/键帽）无法驯服 → 不加经验，直接放行不消耗
-		if (GoodCatLogic.getGoodValue(self) < GoodCatLogic.BAD_THRESHOLD) {
-			cir.setReturnValue(InteractionResult.PASS);
-		}
+		// 其余情况（未驯服可驯服的猫 / 已驯服的猫）完全交给原版 mobInteract 处理喂食/驯服/繁殖，
+		// 鱼不再提供任何经验。
 	}
 
-	/** 判断手持物品是否为可投喂的鱼，并返回对应经验值（非鱼返回 0）。 */
-	private static int fishExp(ItemStack stack) {
-		if (stack.is(Items.COD) || stack.is(Items.SALMON)) {
-			return CatLeveling.RAW_FISH_EXP;
-		}
-		if (stack.is(Items.COOKED_COD) || stack.is(Items.COOKED_SALMON)) {
-			return CatLeveling.COOKED_FISH_EXP;
-		}
-		return 0;
+	/** 判断手持物品是否为可投喂的鱼（鳕鱼/鲑鱼）。 */
+	private static boolean isFish(ItemStack stack) {
+		return stack.is(Items.COD) || stack.is(Items.SALMON)
+				|| stack.is(Items.COOKED_COD) || stack.is(Items.COOKED_SALMON);
 	}
 
 	/** 消耗一条鱼（创造模式不消耗）。 */
@@ -257,7 +243,12 @@ public abstract class CatMixin implements AiGoalsHolder {
 		cat.level().playSound(null, cat, SoundEvents.GENERIC_EAT.value(), cat.getSoundSource(), 1.0F, 1.0F);
 	}
 
-	@Inject(method = "mobInteract", at = @At("TAIL"))
+	/**
+	 * 在原版 mobInteract 的每个返回点补上驯服完成的好猫值 +10
+	 * （原 TAIL 只能命中最后的 return，驯服早退路径漏触发）。
+	 * <p>鱼不再提供经验——喂食回血 / 繁殖等均由原版逻辑处理。
+	 */
+	@Inject(method = "mobInteract", at = @At("RETURN"))
 	private void oldwu_applyTameBoost(Player player, InteractionHand hand, CallbackInfoReturnable<InteractionResult> cir) {
 		Cat self = (Cat) (Object) this;
 		if (!this.oldwuWasTameBeforeInteract && self.isTame()) {
